@@ -52,7 +52,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   children: [
                     SizedBox(height: 20,),
                       Text(
-                        "Hello Username",
+                        "Hello " ,
                         style: GoogleFonts.dancingScript(
                           fontSize: 33,
                           fontWeight: FontWeight.bold,

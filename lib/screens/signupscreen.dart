@@ -1,6 +1,9 @@
+import 'package:budgetbee/functions/userfunctions.dart';
+import 'package:budgetbee/model/usermodel.dart';
 import 'package:budgetbee/screens/loginscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/adapters.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -21,7 +24,6 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          height: MediaQuery.of(context).size.height,
           decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage('lib/assets/Background.png'),
@@ -206,7 +208,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 //     MaterialPageRoute(
                                 //       builder: (context) => WelcomeScreen(),
                                 //     ));
-                                AddUserFunction();
+                                AddUserButton();
                               },
                               child: Text(
                                 "SIGNUP",
@@ -239,7 +241,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
 // Name validator method
   String? validateFullName(String? value) {
-  
     final trimmedValue = value?.trim();
 
     if (trimmedValue == null || trimmedValue.isEmpty) {
@@ -252,7 +253,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return 'Full Name can only contain letters and spaces';
     }
 
-    return null; 
+    return null;
   }
 
 // Email validator method
@@ -280,34 +281,73 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
 // Confirm Password Method
-    String? validateConfirmPassword(String? value) {
+  String? validateConfirmPassword(String? value) {
     final trimmedValue = value?.trim();
 
     if (trimmedValue == null || trimmedValue.isEmpty) {
       return "Cannot Be empty";
     }
-    if(trimmedValue!=_passwordController.text){
-    return 'Password must watch';
-  }
+    if (trimmedValue != _passwordController.text) {
+      return 'Password must watch';
+    }
     return null;
   }
 
-  void AddUserFunction() {
+  void usercheck(String email) async {
+    await Hive.openBox<UserModel>("user_db");
+    final userDB = Hive.box<UserModel>("user_db");
+    final userExists = userDB.values.any((user) => user.email == email);
+
+    if (userExists) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Error"),
+              content: Text("User Already Exists"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("OK"))
+              ],
+            );
+          });
+    } else {
+      AddUserButton();
+    }
+  }
+
+  void AddUserButton() async {
+    final String name = _nameController.text.trim();
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text.trim();
+    // final String confirmpassword = _confirmpasswordController.text.trim();
+
     if (_formKey.currentState!.validate() &&
         _passwordController.text == _confirmpasswordController.text) {
+      final _user = UserModel(name: name, email: email, password: password);
+      addUser(_user);
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => LoginScreen(),
           ));
+    } else {
+      showSnackBar(context, 'User registration failed!');
+      _nameController.clear();
+      _confirmpasswordController.clear();
+      _emailController.clear();
+      _passwordController.clear();
     }
-    // else{
-    //   showSnackBar(context, 'User registration failed!');
-    // }
   }
 
-
-
-
-
+  void showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+    ));
+  }
 }
+
