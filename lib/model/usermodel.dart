@@ -7,13 +7,17 @@ class UserModel {
   int? id;
 
   @HiveField(1)
-  String? name;
+  String name;
 
   @HiveField(2)
-  String? email;
+  String email;
 
   @HiveField(3)
-  String? password;
+  String password;
 
-  UserModel({required this.name, required this.email, required this.password});
+  @HiveField(4)
+  String photo;
+
+  UserModel({required this.name, required this.email, required this.password,required this.photo,  this.id});
+
 }

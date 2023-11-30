@@ -1,7 +1,9 @@
 import 'package:budgetbee/main.dart';
 import 'package:budgetbee/model/usermodel.dart';
-import 'package:budgetbee/screens/homescreen.dart';
+// import 'package:budgetbee/screens/homescreen.dart';
+import 'package:budgetbee/screens/signupscreen.dart';
 import 'package:budgetbee/screens/welcomescreen.dart';
+import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -63,17 +65,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   Text(
                     "LOGIN",
-                    style: GoogleFonts.poppins(
-                        fontSize: 28, fontWeight: FontWeight.w400),
-                  ),
+                    style: text_theme_hyper(),),
                   SizedBox(height: 30),
-                  Text(
-                    "We'd love to get to know you!",
-                    style: GoogleFonts.comfortaa(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Text("Enter your credentials!", style: text_theme_p()),
                   SizedBox(height: 20),
                   Container(
                       child: Column(children: [
@@ -86,10 +80,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextFormField(
                             controller: _emailController,
                             validator: validateEmail,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
                             decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.email),
+                              prefixIconColor:
+                                  const Color.fromARGB(255, 93, 93, 93),
                               hintText: "Email",
                               labelText: "Enter your email id",
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(color: Colors.black)),
                               labelStyle: GoogleFonts.poppins(),
+                              floatingLabelStyle: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500),
                               filled: true,
                               fillColor: Colors.white.withOpacity(.7),
                               border: OutlineInputBorder(
@@ -98,22 +103,38 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
+
                           SizedBox(height: 20),
 
                           // Password field
                           TextFormField(
                             controller: _passwordController,
                             validator: validatePassword,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
                             decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.key),
+                              prefixIconColor:
+                                  const Color.fromARGB(255, 93, 93, 93),
                               hintText: "Password",
                               labelText: "Enter your password",
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(color: Colors.black)),
                               labelStyle: GoogleFonts.poppins(),
+                              floatingLabelStyle: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500),
                               filled: true,
                               fillColor: Colors.white.withOpacity(.7),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: BorderSide.none,
                               ),
+                              errorStyle: GoogleFonts.poppins(
+                                  color: const Color.fromARGB(255, 255, 0, 0),
+                                  fontWeight: FontWeight.bold),
+                              alignLabelWithHint: true,
                             ),
                           ),
                         ],
@@ -122,12 +143,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        
                         login(_emailController.text, _passwordController.text,
                             context);
                       },
                       child: Text(
                         "LOGIN",
+                        style: GoogleFonts.poppins(
+                            color: const Color.fromARGB(255, 255, 255, 255),
+                            fontWeight: FontWeight.bold),
+                      ),
+                      style: ButtonStyle(
+                          shape: MaterialStatePropertyAll(
+                              RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30))),
+                          backgroundColor: MaterialStatePropertyAll(
+                              const Color.fromARGB(255, 0, 0, 0))),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SignupScreen(),
+                            ));
+                      },
+                      child: Text(
+                        "Don't have an account ?",
                         style: GoogleFonts.poppins(
                             color: const Color.fromARGB(255, 255, 255, 255),
                             fontWeight: FontWeight.bold),
@@ -170,8 +212,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void login(String email, String password, BuildContext context) async {
+    // Database
     final userDB = await Hive.openBox<UserModel>("user_db");
     UserModel? user;
+    //SEARCHING FOR USER
     for (var i = 0; i < userDB.length; i++) {
       final currentUser = userDB.getAt(i);
       if (currentUser?.email == email && currentUser?.password == password) {
@@ -184,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setBool(SAVE_KEY_NAME, true);
       await saveUserEmail(email);
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
     } else {
       showDialog(
           context: context,
