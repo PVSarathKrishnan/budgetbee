@@ -1,61 +1,53 @@
-// import 'package:budgetbee/screens/homescreen.dart';
-import 'package:budgetbee/db/transactionfunction.dart';
-import 'package:budgetbee/model/addtransactionmodel.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 
-class AddIncome extends StatefulWidget {
-  const AddIncome({super.key});
+class AddExpense extends StatefulWidget {
+  const AddExpense({super.key});
 
   @override
-  State<AddIncome> createState() => _AddIncomeState();
+  State<AddExpense> createState() => _AddExpenseState();
 }
 
-// Income
-class _AddIncomeState extends State<AddIncome> {
+class _AddExpenseState extends State<AddExpense> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _controllerIncome = TextEditingController();
-  // final TextEditingController _descriptionControllerIncome =
-  //     TextEditingController();
-  final DateTime _incomeTime = DateTime.now();
-  String? _selectedIncomeSource;
-
-  List<String> incomeSourceOptions = [
-    'Salary',
-    'Freelancing',
-    'Business Income',
-    'Investments',
-    'Rental Income',
-    'Interest',
-    'Dividends',
-    'Gifts',
-    'Bonus',
-    'Refunds',
+  final TextEditingController _controllerExpense = TextEditingController();
+  final TextEditingController _descriptionControllerExpense =
+      TextEditingController();
+  final DateTime _expenseTime = DateTime.now();
+  String? _selectedExpenseSource;
+  List<String> expenseSourceOptions = [
+    'Food',
+    'Rent',
+    'Utilities',
+    'Transportation',
+    'Insurance',
+    'Healthcare',
+    'Entertainment',
+    'Clothing',
+    'Education',
+    'Gifts & Donations',
     'Other'
   ];
-  @override
-  void initState() {
-    super.initState();
-    // call the function to get the user
-    
-  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0XFFF5F6F8),
+        backgroundColor: Color(0xFFFFDE00),
         appBar: AppBar(
-          backgroundColor: Color(0XFF9486F7),
-          toolbarHeight: 0,
-          title: Text("ADD INCOME"),
+          title: Text("ADD EXPENSE"),
           iconTheme: IconThemeData(color: Colors.white),
           centerTitle: true,
+          backgroundColor: Color.fromARGB(255, 0, 0, 0),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
         body: SingleChildScrollView(
           child: Column(children: [
             SizedBox(height: 20),
+            // First section for Income
+            // First section for Income
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -72,7 +64,7 @@ class _AddIncomeState extends State<AddIncome> {
                   child: Align(
                     alignment: Alignment.center,
                     child: Text(
-                      "INCOME",
+                      "EXPENSE",
                       style: GoogleFonts.poppins(
                           color: Color.fromARGB(255, 0, 0, 0),
                           fontWeight: FontWeight.w600,
@@ -91,8 +83,7 @@ class _AddIncomeState extends State<AddIncome> {
                   height: 70,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color:
-                        const Color.fromARGB(255, 60, 244, 54).withOpacity(.9),
+                    color: Color.fromARGB(167, 255, 0, 0).withOpacity(.8),
                   ),
                   child: Align(
                     alignment: Alignment.center,
@@ -104,7 +95,7 @@ class _AddIncomeState extends State<AddIncome> {
                         }
                         return null;
                       },
-                      controller: _controllerIncome,
+                      controller: _controllerExpense,
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -133,19 +124,13 @@ class _AddIncomeState extends State<AddIncome> {
               width: 250,
               height: 40,
               child: DropdownButtonFormField(
-              validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Enter select an option';
-                        }
-                        return null;
-                      },
-                value: _selectedIncomeSource,
+                value: _selectedExpenseSource,
                 onChanged: (String? newValue) {
                   setState(() {
-                    _selectedIncomeSource = newValue;
+                    _selectedExpenseSource = newValue;
                   });
                 },
-                items: incomeSourceOptions
+                items: expenseSourceOptions
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -178,7 +163,14 @@ class _AddIncomeState extends State<AddIncome> {
             // Elevated button for adding to income
             ElevatedButton(
               onPressed: () {
-                _controllerIncome.clear();  
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => HomeScreen(),
+                //     ));
+                addExpenseButton();
+                _controllerExpense.clear();
+                _descriptionControllerExpense.clear();
               },
               child: Text(
                 "ADD TO INCOME",
@@ -194,11 +186,17 @@ class _AddIncomeState extends State<AddIncome> {
               ),
             ),
             Container(
-                child: Lottie.asset("lib/assets/income.json",
+                child: Lottie.asset("lib/assets/spend.json",
                     height: 250, width: 250)),
           ]),
         ));
   }
 
-
+  Future<void> addExpenseButton() async {
+    final int amount = int.parse(_controllerExpense.text);
+    final String decription = _descriptionControllerExpense.text.trim();
+    final DateTime date = DateTime.now();
+    final bool type = false;
+    if (_formKey.currentState!.validate()) {}
+  }
 }

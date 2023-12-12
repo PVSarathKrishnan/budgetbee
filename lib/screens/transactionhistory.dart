@@ -1,6 +1,8 @@
-import 'package:budgetbee/screens/homescreen.dart';
+import 'package:budgetbee/controllers/db_helper.dart';
+import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/widgets/expensetile.dart';
+import 'package:budgetbee/widgets/incometile.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({Key? key}) : super(key: key);
@@ -11,203 +13,139 @@ class TransactionHistoryScreen extends StatefulWidget {
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+  bool sortAscending = true;
+  DbHelper dbHelper = DbHelper();
+  late List<Map<dynamic, dynamic>> transactions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    List<Map<dynamic, dynamic>> data = (await dbHelper.fetchTransactions());
+    setState(() {
+      transactions = data;
+    });
+  }
+
+  void filterTransactions(String query) {
+    if (query.isNotEmpty) {
+      List<Map<dynamic, dynamic>> filteredTransactions = transactions
+          .where((transaction) => transaction['note']
+              .toString()
+              .toLowerCase()
+              .contains(query.toLowerCase()))
+          .toList();
+      setState(() {
+        transactions = filteredTransactions;
+      });
+    } else {
+      fetchData(); // Reset to all transactions if the query is empty
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFDE00),
-      appBar: AppBar(
-        title: Text("TRANSACTION HISTORY"),
-        iconTheme: IconThemeData(color: Colors.white),
-        centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 0, 0, 0),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      ),
       body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('lib/assets/Background.png'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Center(
-            child: Column(
-              children: [
-                // List tiles
-                Container(
-                  margin: EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFF00FF0A),
-                          borderRadius: BorderRadius.circular(30),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      width: 300,
+                      child: TextField(
+                        style: text_theme_color_size(
+                            Colors.black.withOpacity(.8), 18),
+                        decoration: InputDecoration(
+                          labelText: 'Search by note',
+                          labelStyle:
+                              text_theme_color(Colors.black.withOpacity(.7)),
+                          prefixIcon:
+                              Icon(Icons.search, color: Color(0XFF9486F7)),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Color(0XFF9486F7), width: 2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          fillColor: Color(0XFFD1CEFF),
+                          filled: true,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16),
                         ),
-                        child: ListTile(
-                            leading: RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '18/7/23\n',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            const Color.fromARGB(255, 0, 0, 0),
-                                        fontSize: 16),
-                                  ),
-                                  TextSpan(
-                                    text: '9 : 30 AM',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            const Color.fromARGB(255, 0, 0, 0),
-                                        fontSize: 16),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            title: Center(
-                                child: Text("INCOME",
-                                    style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color.fromARGB(
-                                            255, 0, 0, 0)))),
-                            trailing: Text("7500",
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color.fromARGB(255, 0, 0, 0),
-                                    fontSize: 20))),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFFFD5C0A),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: ListTile(
-                            leading: RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '18/8/23\n',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            const Color.fromARGB(255, 0, 0, 0),
-                                        fontSize: 16),
-                                  ),
-                                  TextSpan(
-                                    text: '8 : 30 PM',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            const Color.fromARGB(255, 0, 0, 0),
-                                        fontSize: 16),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            title: Center(
-                                child: Text("EXPENSE",
-                                    style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color.fromARGB(
-                                            255, 0, 0, 0)))),
-                            trailing: Text("5000",
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color.fromARGB(255, 0, 0, 0),
-                                    fontSize: 20))),
-                      ),
-                      // Add more ListTiles here as needed
-                      SizedBox(
-                        height: 480,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                shape: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    borderSide: BorderSide.none),
-                                title: Container(
-                                    width: 180,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(30),
-                                        color: Colors.black),
-                                    child: Text(
-                                      "Reset Confirmation",
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center,
-                                    )),
-                                content: Text(
-                                  "Are you sure you want to reset your transaction history?                      This action cannot be undone. Please confirm to proceed",
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                  textAlign: TextAlign.center,
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  HomeScreen()));
-                                    },
-                                    child: Text('Confirm',
-                                        style: GoogleFonts.poppins(
-                                            color: const Color.fromARGB(
-                                                255, 255, 17, 0),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        textAlign: TextAlign.center),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('No',
-                                        style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        textAlign: TextAlign.center),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
+                        onChanged: (query) {
+                          filterTransactions(query);
                         },
-                        child: Text(
-                          "RESET",
-                          style: GoogleFonts.poppins(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ButtonStyle(
-                          shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          backgroundColor: MaterialStateProperty.all(
-                            const Color.fromARGB(255, 0, 0, 0),
-                          ),
-                        ),
                       ),
-                    ],
+                    ),
                   ),
-                )
-              ],
+                  SizedBox(width: 10),
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Color(0XFF9486F7).withOpacity(.4),
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          sortAscending = !sortAscending;
+                        });
+                      },
+                      icon: Icon(Icons.swap_vert),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+            if (transactions.isNotEmpty)
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: transactions.length,
+                itemBuilder: (context, index) {
+                  Map dataAtIndex = sortAscending
+                      ? transactions[index]
+                      : transactions[transactions.length - index - 1];
+                  if (dataAtIndex['type'] == "Income") {
+                    return IncomeTile(
+                      value: dataAtIndex['amount'],
+                      note: dataAtIndex['note'],
+                      date: dataAtIndex['date'],
+                    );
+                  } else {
+                    return ExpenseTile(
+                      value: dataAtIndex['amount'],
+                      note: dataAtIndex['note'],
+                      date: dataAtIndex['date'],
+                    );
+                  }
+                },
+              ),
+            if (transactions.isEmpty)
+              Center(
+                child: Text(
+                  'No transactions found',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+          ],
         ),
       ),
     );

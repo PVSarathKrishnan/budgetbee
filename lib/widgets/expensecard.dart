@@ -26,7 +26,7 @@ class cardEpense extends StatelessWidget {
         ),
         Column(
           children: [
-            Text(
+            Text( 
               "Expense",
               style: text_theme(),
             ),

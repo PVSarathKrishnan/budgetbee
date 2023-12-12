@@ -1,3 +1,4 @@
+import 'package:budgetbee/screens/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -13,15 +14,15 @@ class _AboutScreenState extends State<AboutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFDE00), // Setting background color
-      appBar: AppBar(
-        title: Text("ABOUT"), // Setting the app bar title
-        iconTheme: IconThemeData(color: Colors.white),
-        centerTitle: true, // Centering the app bar title
-        backgroundColor:
-            Color.fromARGB(255, 0, 0, 0), // Setting app bar background color
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30)), // Setting app bar shape
-      ),
+      // appBar: AppBar(
+      //   title: Text("ABOUT"), // Setting the app bar title
+      //   iconTheme: IconThemeData(color: Colors.white),
+      //   centerTitle: true, // Centering the app bar title
+      //   backgroundColor:
+      //       Color.fromARGB(255, 0, 0, 0), // Setting app bar background color
+      //   shape: RoundedRectangleBorder(
+      //       borderRadius: BorderRadius.circular(30)), // Setting app bar shape
+      // ),
       body: SingleChildScrollView(
         child: Container(
           height: MediaQuery.of(context).size.height,
@@ -64,23 +65,43 @@ class _AboutScreenState extends State<AboutScreen> {
               SizedBox(
                 height: 180,
               ), // Providing space
-              Container(
-                width: 130,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 0, 0, 0)
-                      .withOpacity(.8), // Setting container color
-                  borderRadius:
-                      BorderRadius.circular(30), // Setting border radius
-                ),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    "VERSION 1.0.0", // Displaying version number
-                    style: GoogleFonts.poppins(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+              Column(
+                children: [
+                  Container(
+                    width: 130,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 0, 0, 0)
+                          .withOpacity(.8), // Setting container color
+                      borderRadius:
+                          BorderRadius.circular(30), // Setting border radius
+                    ),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "VERSION 1.0.0", // Displaying version number
+                        style: GoogleFonts.poppins(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
-                ),
+                  SizedBox(height: 20,),
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 255, 255, 255)
+                          .withOpacity(.3), // Setting container color
+                      borderRadius:
+                          BorderRadius.circular(12), // Setting border radius
+                    ),
+                    child: IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(Icons.arrow_back),iconSize: 25,),
+                  )
+                ],
               ),
             ],
           ),

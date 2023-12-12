@@ -2,17 +2,19 @@ import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism_ui/glassmorphism_ui.dart';
 
-class incomeTile extends StatelessWidget {
-  const incomeTile({
-    super.key,
+class IncomeTile extends StatelessWidget {
+  const IncomeTile({
+    Key? key,
     required this.value,
     required this.note,
     required this.date,
-  });
+  }) : super(key: key);
 
   final int value;
   final String note;
   final DateTime date;
+
+  static const int maxCharactersToShow = 10;
 
   @override
   Widget build(BuildContext context) {
@@ -32,37 +34,31 @@ class incomeTile extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.arrow_upward,
-                      size: 30,
-                      color: Colors.green,
+                    Text(
+                      "${date.day}/${date.month}/${date.year} ",
+                      style: text_theme_h(),
                     ),
                     SizedBox(
-                      width: 10,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "${date.day}/${date.month}/${date.year} ",
+                      width: 200,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          "${note}",
                           style: text_theme(),
                         ),
-                      ],
+                      ),
                     ),
                   ],
-                ),
-                Text(
-                  "${note}",
-                  style: text_theme(),
                 ),
                 SizedBox(
                   width: 30,
                 ),
                 Text(
                   "+$value",
-                  style: text_theme_color(Colors.green),
+                  style: text_theme_color_size(Colors.green, 22),
                 ),
               ],
             )
@@ -80,7 +76,7 @@ class incomeTile extends StatelessWidget {
         return Container(
           padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color:Colors.white.withOpacity(.4),
+            color: Colors.white.withOpacity(.4),
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             boxShadow: [
               BoxShadow(
@@ -115,14 +111,17 @@ class incomeTile extends StatelessWidget {
       },
     );
   }
+}
+Widget _buildPlaceholder(IconData icon, String title, dynamic value) {
+  final String displayedText = value != null ? '$value' : title;
 
-  Widget _buildPlaceholder(IconData icon, String title, dynamic value) {
-    return GlassContainer(
-      width: 300,
-      height: 60,
-      borderRadius: BorderRadius.circular(16),
-      blur: 5,
-      border: Border.all(width: 1, color: Colors.grey.shade300),
+  return GlassContainer(
+    width: 300,
+    height: 60,
+    borderRadius: BorderRadius.circular(16),
+    blur: 5,
+    border: Border.all(width: 1, color: Colors.grey.shade300),
+    child: SingleChildScrollView(
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -137,13 +136,25 @@ class incomeTile extends StatelessWidget {
               color: Colors.black,
             ),
             SizedBox(width: 10),
-            Text(
-              value != null ? '$value' : title,
-              style: TextStyle(fontSize: 16),
+            Expanded(
+              child: displayedText.length > 22
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Text(
+                        displayedText,
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    )
+                  : Text(
+                      displayedText,
+                      style: TextStyle(fontSize: 16),
+                    ),
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
+
+

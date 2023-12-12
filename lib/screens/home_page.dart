@@ -1,15 +1,22 @@
-import 'dart:io';
-
 import 'package:budgetbee/controllers/db_helper.dart';
+import 'package:budgetbee/model/transaction_modal.dart';
 import 'package:budgetbee/model/usermodel.dart';
+import 'package:budgetbee/screens/BNBmainpage.dart';
+import 'package:budgetbee/screens/aboutscreen.dart';
+import 'package:budgetbee/screens/add_name.dart';
 import 'package:budgetbee/screens/add_transaction.dart';
+import 'package:budgetbee/screens/profile_page.dart';
+import 'package:budgetbee/screens/transactionhistory.dart';
+import 'package:budgetbee/screens/unused_pages/editprofilescreen.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:budgetbee/widgets/expensecard.dart';
 import 'package:budgetbee/widgets/expensetile.dart';
 import 'package:budgetbee/widgets/incomecard.dart';
 import 'package:budgetbee/widgets/incometile.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:glassmorphism_ui/glassmorphism_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
@@ -22,27 +29,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  getPreference() async {
+    preferences = await SharedPreferences.getInstance();
+  }
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   String userEmail = "";
   UserModel? currentUser;
-  @override
-  void initState() {
-    super.initState();
-    // call the function to get the user
-    getUser();
-  }
-
-  Future<void> getUser() async {
-    // retrieving the current user email from shared preference
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // if the current user is null
-    userEmail = prefs.getString("currentUser") ?? "";
-    // checking the user in db using the same email
-    final userBox = await Hive.openBox<UserModel>("user_db");
-    currentUser = userBox.values.firstWhere((user) => user.email == userEmail);
-    setState(() {});
-  }
-
+  late SharedPreferences preferences;
+  late Box box;
   bool sortAscending = true;
   DbHelper dbHelper = DbHelper();
   DateTime today = DateTime.now();
@@ -51,41 +47,142 @@ class _HomePageState extends State<HomePage> {
   int totalExpense = 0;
   List<FlSpot> dataSet = [];
 
-  List<FlSpot> getPlotPoints(Map entireData) {
-    dataSet = [];
-    entireData.forEach((key, value) {
-      if (value['type'] == "Expense") {
-        dataSet.add(FlSpot(
-        (value['date'] as DateTime).day.toDouble(), // Using day as y-axis value
-        (value['amount']).toDouble(), // Using amount as x-axis value
-      ));
+  List<FlSpot> getPlotPoints(List<TransactionModal> entireData) {
+    Map<DateTime, int> dayWiseExpenses = {};
+
+    entireData.forEach((data) {
+      if (data.type == "Expense") {
+        DateTime dateKey =
+            DateTime(data.date.year, data.date.month, data.date.day);
+        if (dayWiseExpenses.containsKey(dateKey)) {
+          dayWiseExpenses[dateKey] = dayWiseExpenses[dateKey]! + data.amount;
+        } else {
+          dayWiseExpenses[dateKey] = data.amount;
+        }
       }
     });
+
+    // Convert the accumulated expenses map to FlSpot list
+    List<FlSpot> dataSet = dayWiseExpenses.entries.map((entry) {
+      return FlSpot(entry.key.day.toDouble(), entry.value.toDouble());
+    }).toList();
+
     return dataSet;
   }
 
-  getTotalBalance(Map entireData) {
+  getTotalBalance(List<TransactionModal> entireData) {
     totalBalance = 0;
     totalIncome = 0;
     totalExpense = 0;
-    entireData.forEach((key, value) {
-      if (value['type'] == "Income") {
-        totalBalance += (value['amount'] as int);
-        totalIncome += (value['amount'] as int);
-      } else {
-        totalBalance -= (value['amount'] as int);
-        totalExpense += (value['amount'] as int);
+    for (TransactionModal data in entireData) {
+      if (data.date.month == today.month) {
+        if (data.type == "Income") {
+          totalBalance += data.amount;
+          totalIncome += data.amount;
+        } else if (data.type == "Expense") {
+          totalBalance -= data.amount;
+          totalExpense += data.amount;
+        }
       }
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Color(0XFFF5F6F8),
         appBar: AppBar(
-          // backgroundColor: Color(0XFF9486F7),
-          toolbarHeight: 0,
+          backgroundColor: Color(0XFF9486F7),
+          toolbarHeight: 50,
+          leading: Icon(
+            Icons.home,
+            color: Colors.white,
+          ),
+          title: Text(
+            "BudgetBee",
+            style: text_theme_hyper_golden(),
+          ),
+          actions: [
+            IconButton(
+              onPressed: () {
+                // logOut(context);
+                _scaffoldKey.currentState!.openEndDrawer();
+              },
+              icon: Icon(Icons.settings, color: Colors.white),
+            )
+          ],
+        ),
+        endDrawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              Container(
+                height: 150,
+                child: DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Color(0XFF9486F7), // Set primary color
+                    ),
+                    child: Text(
+                      "Settings",
+                      style: text_theme_color_size(Colors.white, 30),
+                    )),
+              ),
+              ListTile(
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.person,
+                      color: Colors.black,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text('Profile', style: text_theme()),
+                  ],
+                ),
+                onTap: () {
+                  _showProfileModal(context);
+                },
+              ),
+              ListTile(
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.hdr_auto_sharp,
+                      color: Colors.black,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text('About us', style: text_theme()),
+                  ],
+                ),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => AboutScreen(),
+                  ));
+                },
+              ),
+              ListTile(
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.logout,
+                      color: Colors.black,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text('Logout', style: text_theme()),
+                  ],
+                ),
+                onTap: () {
+                  logOut(context);
+                },
+              ),
+            ],
+          ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: FloatingActionButton(
@@ -106,8 +203,8 @@ class _HomePageState extends State<HomePage> {
             size: 32,
           ),
         ),
-        body: FutureBuilder<Map>(
-            future: dbHelper.fetch(),
+        body: FutureBuilder<List<TransactionModal>>(
+            future: fetch(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(
@@ -121,28 +218,19 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          children: [
-                            CircleAvatar(
-                              backgroundImage:
-                                  FileImage(File(currentUser!.photo)),
-                              radius: 60,
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Text(
-                              "Hello ${currentUser!.name}",
-                              style: text_theme(),
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Container()),
-                          ],
+                        SizedBox(
+                          height: 20,
                         ),
+                        Text(
+                          "Hello ${preferences.getString("name")}",
+                          style: text_theme_hyper(),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container()),
                         Lottie.asset("lib/assets/nodata.json",
                             height: 100, width: 180),
                         Text(
@@ -154,35 +242,14 @@ class _HomePageState extends State<HomePage> {
                   );
                 }
                 getTotalBalance(snapshot.data!);
+                // getPlotPoints(snapshot.data!);
                 return ListView(
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(18.0),
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundImage:
-                                        FileImage(File(currentUser!.photo)),
-                                    radius: 20,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      "${currentUser!.name}",
-                                      style: text_theme_h(),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Container(
-                              child: IconButton(onPressed: (){}, icon: Icon(Icons.settings),)
-                            )
-                          ]),
+                          children: []),
                     ),
                     Container(
                       width: MediaQuery.of(context).size.width * .8,
@@ -209,7 +276,7 @@ class _HomePageState extends State<HomePage> {
                         padding: EdgeInsets.all(12),
                         child: Column(children: [
                           Text(
-                            "Total Balance",
+                            "Available Balance",
                             style: text_theme_h(),
                           ),
                           Text(
@@ -232,49 +299,78 @@ class _HomePageState extends State<HomePage> {
                         ]),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(18.0),
-                      child: Text(
-                        "Expenses",
-                        style: text_theme_h(),
-                      ),
-                    ),
-                    dataSet.isNotEmpty 
-                        ? Padding(
-                            padding: const EdgeInsets.all(18.0),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: Colors.grey.withOpacity(.3),
-                                        blurRadius: 2)
-                                  ]),
-                              height: 300.0,
-                              child: LineChart(
-                                LineChartData(lineBarsData: [
-                                  LineChartBarData(
-                                      spots: getPlotPoints(snapshot.data!),
-                                      isCurved: true,
-                                      barWidth: 3,
-                                      color: Colors.deepPurple)
-                                ]),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            "Expense Tracker - ${DateFormat('MMMM').format(selectedDate)}",
+                            style: text_theme_h(),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: Container(
+                            height: 45,
+                            width: 45,
+                            decoration: BoxDecoration(
+                                color: Color(0XFF9486F7),
+                                borderRadius: BorderRadius.circular(60)),
+                            child: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  sortAscending = !sortAscending;
+                                });
+                              },
+                              icon: Icon(
+                                Icons.navigate_next_sharp,
+                                size: 30,
                               ),
-                            ),
-                          )
-                        : Container(
-                            child: Center(
-                              child: Text(
-                                "Not Enough data to render  the graph",
-                                style: text_theme(),
-                              ),
+                              tooltip: "Explore more Statistics",
                             ),
                           ),
+                        )
+                      ],
+                    ),
+                    Container(
+                      height: 400,
+                      padding: EdgeInsets.all(18),
+                      margin: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.grey.withOpacity(.4),
+                                spreadRadius: 5,
+                                blurRadius: 6,
+                                offset: Offset(0, 4))
+                          ]),
+                      child: LineChart(LineChartData(
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: getPlotPoints(snapshot.data!),
+                            isCurved: true,
+                            color: Color(0XFF9486F7), // Color for the line
+
+                            dotData: FlDotData(
+                              show: true,
+                              getDotPainter: (spot, percent, barData, index) =>
+                                  FlDotCirclePainter(
+                                      radius: 4,
+                                      color: Color(
+                                          0XFF9486F7)), // Set dot size and color here
+                            ),
+                            belowBarData: BarAreaData(
+                                show: false), // To hide the area below the line
+                            // You can add more styling properties as needed
+                          )
+                        ],
+                      )),
+                    ),
                     Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.only(left: 8.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -282,37 +378,51 @@ class _HomePageState extends State<HomePage> {
                             "Recent Transactions",
                             style: text_theme_h(),
                           ),
-                          IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  sortAscending = !sortAscending;
-                                });
-                              },
-                              icon: Icon(
-                                Icons.swap_vert,
-                              ))
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12.0),
+                            child: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                  color: Color(0XFF9486F7),
+                                  borderRadius: BorderRadius.circular(60)),
+                              child: IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => MainTransactionPage(),
+                                  ));
+                                },
+                                icon: Icon(
+                                  Icons.navigate_next_sharp,
+                                  size: 30,
+                                ),
+                                tooltip: "View full transaction history",
+                              ),
+                            ),
+                          )
                         ],
                       ),
                     ),
                     ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
-                      itemCount:
-                          snapshot.data != null ? snapshot.data!.length : 0,
+                      itemCount: snapshot.data!.length > 5
+                          ? 5
+                          : snapshot.data!
+                              .length, // Show up to 5 items or less if available
                       itemBuilder: (context, index) {
-                        Map dataAtIndex = sortAscending
-                            ? snapshot.data![index]
-                            : snapshot.data![snapshot.data!.length - index - 1];
-                        if (dataAtIndex['type'] == "Income") {
-                          return incomeTile(
-                              value: dataAtIndex['amount'],
-                              note: dataAtIndex['note'],
-                              date: dataAtIndex['date']);
+                        TransactionModal dataAtIndex =
+                            snapshot.data![snapshot.data!.length - index - 1];
+                        if (dataAtIndex.type == "Income") {
+                          return IncomeTile(
+                              value: dataAtIndex.amount,
+                              note: dataAtIndex.note,
+                              date: dataAtIndex.date);
                         } else {
                           return ExpenseTile(
-                              value: dataAtIndex['amount'],
-                              note: dataAtIndex['note'],
-                              date: dataAtIndex['date']);
+                              value: dataAtIndex.amount,
+                              note: dataAtIndex.note,
+                              date: dataAtIndex.date);
                         }
                       },
                     )
@@ -326,5 +436,165 @@ class _HomePageState extends State<HomePage> {
             }));
   }
 
-  void swaptransaction() {}
+//log out
+  void logOut(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              "Logout",
+              style: text_theme_h(),
+            ),
+            content: Text(
+              "Do you want to leave ?",
+              style: text_theme(),
+            ),
+            actions: [
+              ElevatedButton(
+                  style: button_theme(),
+                  onPressed: () {
+                    signout(context);
+                  },
+                  child: Text("Yes", style: text_theme())),
+              ElevatedButton(
+                  style: button_theme(),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text("No", style: text_theme())),
+            ],
+          );
+        });
+  }
+
+//signout
+  signout(BuildContext ctx) async {
+    final _sharedPrefs = await SharedPreferences.getInstance();
+    await _sharedPrefs.clear();
+
+    // ignore: use_build_context_synchronously
+    Navigator.of(ctx).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (ctx) => AddName()), (route) => false);
+  }
+
+  void _showProfileModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 300,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0XFF9486F7),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 390,
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  preferences.getString("name") ?? 'Placeholder Name',
+                  style: text_theme_h().copyWith(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    width: 170,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Text(
+                      preferences.getString("userType") ?? 'Placeholder',
+                      textAlign: TextAlign.center,
+                      style: text_theme()
+                          .copyWith(color: const Color.fromARGB(255, 0, 0, 0)),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    width: 170,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Text(
+                      preferences.getString("incomeLevel") ?? 'Placeholder',
+                      textAlign: TextAlign.center,
+                      style: text_theme().copyWith(
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 30),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProfile(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 120,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(
+                          Icons.edit,
+                          color: Colors.black,
+                        ),
+                        Text("Edit Profile",
+                            style: text_theme().copyWith(color: Colors.black)),
+                      ],
+                    ),
+                  ),
+                  style: button_theme().copyWith(
+                      padding: MaterialStatePropertyAll(
+                          EdgeInsets.symmetric(horizontal: 30)))),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<List<TransactionModal>> fetch() async {
+    if (box.values.isEmpty) {
+      return Future.value([]);
+    } else {
+      List<TransactionModal> items = [];
+
+      box.toMap().values.forEach((element) {
+        items.add(TransactionModal(element["amount"] as int,
+            element["date"] as DateTime, element["note"], element["type"]));
+      });
+      return items;
+    }
+  }
+
+  void initState() {
+    super.initState();
+    getPreference();
+    box = Hive.box("money");
+    setState(() {});
+  }
 }

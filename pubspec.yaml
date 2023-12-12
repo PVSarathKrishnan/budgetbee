@@ -29,10 +29,13 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^4.2.0+1
+  flutter_slidable: ^3.0.1
+  flutter_typeahead: ^4.0.0
   glassmorphism_ui: ^0.3.0
   google_fonts: ^6.1.0
   hive_flutter: ^1.1.0
   image_picker: ^1.0.4
+  intl: ^0.18.1
   loading_indicator: ^3.1.1
   lottie: ^2.7.0
   phosphor_flutter: ^2.0.1

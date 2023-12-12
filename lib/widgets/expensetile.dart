@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism_ui/glassmorphism_ui.dart';
@@ -15,6 +13,8 @@ class ExpenseTile extends StatelessWidget {
   final int value;
   final String note;
   final DateTime date;
+
+  static const int maxCharactersToShow = 10;
 
   @override
   Widget build(BuildContext context) {
@@ -34,37 +34,31 @@ class ExpenseTile extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.arrow_downward,
-                      size: 30,
-                      color: Colors.red,
+                    Text(
+                      "${date.day}/${date.month}/${date.year} ",
+                      style: text_theme_h(),
                     ),
                     SizedBox(
-                      width: 10,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "${date.day}/${date.month}/${date.year} ",
+                      width: 200,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          "${note}",
                           style: text_theme(),
                         ),
-                      ],
+                      ),
                     ),
                   ],
-                ),
-                Text(
-                  "${note}",
-                  style: text_theme(),
                 ),
                 SizedBox(
                   width: 30,
                 ),
                 Text(
                   "-$value",
-                  style: text_theme_color(Colors.red),
+                  style: text_theme_color_size(Colors.red, 22),
                 ),
               ],
             )
@@ -82,7 +76,7 @@ class ExpenseTile extends StatelessWidget {
         return Container(
           padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color:Colors.white.withOpacity(.4),
+            color: Colors.white.withOpacity(.4),
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             boxShadow: [
               BoxShadow(
@@ -117,14 +111,17 @@ class ExpenseTile extends StatelessWidget {
       },
     );
   }
+}
+Widget _buildPlaceholder(IconData icon, String title, dynamic value) {
+  final String displayedText = value != null ? '$value' : title;
 
-  Widget _buildPlaceholder(IconData icon, String title, dynamic value) {
-    return GlassContainer(
-      width: 300,
-      height: 60,
-      borderRadius: BorderRadius.circular(16),
-      blur: 5,
-      border: Border.all(width: 1, color: Colors.grey.shade300),
+  return GlassContainer(
+    width: 300,
+    height: 60,
+    borderRadius: BorderRadius.circular(16),
+    blur: 5,
+    border: Border.all(width: 1, color: Colors.grey.shade300),
+    child: SingleChildScrollView(
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -139,13 +136,25 @@ class ExpenseTile extends StatelessWidget {
               color: Colors.black,
             ),
             SizedBox(width: 10),
-            Text(
-              value != null ? '$value' : title,
-              style: TextStyle(fontSize: 16),
+            Expanded(
+              child: displayedText.length > 22
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Text(
+                        displayedText,
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    )
+                  : Text(
+                      displayedText,
+                      style: TextStyle(fontSize: 16),
+                    ),
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
+
+

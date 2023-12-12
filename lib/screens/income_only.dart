@@ -1,102 +1,47 @@
+import 'package:budgetbee/controllers/db_helper.dart';
+import 'package:budgetbee/widgets/incometile.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class IncomeList extends StatefulWidget {
-  const IncomeList({super.key});
+class IncomeOnly extends StatefulWidget {
+  const IncomeOnly({super.key});
 
   @override
-  State<IncomeList> createState() => _IncomeListState();
+  State<IncomeOnly> createState() => _IncomeOnlyState();
 }
 
-class _IncomeListState extends State<IncomeList> {
-  List<String> items = [
-    "Income1",
-    "Income2",
-    "Income3",
-    "Income1",
-    "Income2",
-    "Income3",
-    "Income1",
-    "Income2",
-    "Income3",
-    "Income1",
-    "Income2",
-    "Income3"
-  ];
-  List<String> Date = [
-    "Date 1",
-    "Date 2",
-    "Date 3",
-    "Date 1",
-    "Date 2",
-    "Date 3",
-    "Date 1",
-    "Date 2",
-    "Date 3",
-    "Date 1",
-    "Date 2",
-    "Date 3",
-  ];
-  List<String> Amount = [
-    "Amount 1",
-    "Amount 2",
-    "Amount 3",
-    "Amount 1",
-    "Amount 2",
-    "Amount 3",
-    "Amount 1",
-    "Amount 2",
-    "Amount 3",
-    "Amount 1",
-    "Amount 2",
-    "Amount 3",
-  ];
+class _IncomeOnlyState extends State<IncomeOnly> {
+  List<Map<dynamic, dynamic>> incomes = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchIncomes();
+  }
+
+  Future<void> fetchIncomes() async {
+    DbHelper dbHelper = DbHelper();
+    List<Map<dynamic, dynamic>> transactions =
+        await dbHelper.fetchTransactions();
+    List<Map<dynamic, dynamic>> incomeTransactions = transactions
+        .where((transaction) => transaction['type'] == 'Income')
+        .toList();
+    setState(() {
+      incomes = incomeTransactions;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFDE00),
-      appBar: AppBar(
-        title: Text("INCOME LIST"),
-        iconTheme: IconThemeData(color: Colors.white),
-        centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 0, 0, 0),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      ),
       body: SingleChildScrollView(
         child: Column(
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    top: 8,
-                    right: 8,
-                    left: 8,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: Colors.white,
-                    ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
-                      trailing: Text(
-                        Amount[index],
-                        style: GoogleFonts.poppins(color: Colors.green),
-                      ),
-                      leading: Text(Date[index], style: GoogleFonts.poppins()),
-                      title: Text(items[index], style: GoogleFonts.poppins()),
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
+            children: incomes.map((transaction) {
+          return IncomeTile(
+              value: transaction['amount'],
+              note: transaction['note'],
+              date: transaction['date']);
+        }).toList()),
       ),
     );
   }
