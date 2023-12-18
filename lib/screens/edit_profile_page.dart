@@ -1,3 +1,4 @@
+import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,60 +42,64 @@ class _EditProfileState extends State<EditProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Profile'),
+        title: Text('Edit Profile', style: text_theme_h()),
+        iconTheme: IconThemeData(color: Colors.white),
+        centerTitle: true,
+        backgroundColor: Color(0XFF9486F7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(30.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+           
+            SizedBox(
+              height: 40,
+            ),
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Name',
                 border: OutlineInputBorder(),
               ),
-              style: GoogleFonts.poppins(), // Apply font style here
+              style: text_theme_h(), // Apply font style here
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 30.0),
             TextFormField(
               controller: _userTypeController,
               decoration: InputDecoration(
                 labelText: 'User Type',
                 border: OutlineInputBorder(),
               ),
-              style: GoogleFonts.poppins(), // Apply font style here
+              style: text_theme(), // Apply font style here
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 30.0),
             TextFormField(
-              controller: _incomeLevelController,
-              decoration: InputDecoration(
-                labelText: 'Income Level',
-                border: OutlineInputBorder(),
-              ),
-              style: GoogleFonts.poppins(), // Apply font style here
-            ),
+                controller: _incomeLevelController,
+                decoration: InputDecoration(
+                  labelText: 'Income Level',
+                  border: OutlineInputBorder(),
+                ),
+                style: text_theme() // Apply font style here
+                ),
             SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: () {
-                _saveProfileData();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Profile updated')),
-                );
-              },
-              child: Text(
-                'Save Changes',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
+                onPressed: () {
+                  _saveProfileData();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Profile updated')),
+                  );
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'Save Changes',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                ),
-                primary: const Color.fromARGB(255, 0, 0, 0),
-              ),
-            ),
+                style: button_theme()),
           ],
         ),
       ),

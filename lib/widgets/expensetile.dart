@@ -1,6 +1,8 @@
+import 'package:budgetbee/screens/add_transaction.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism_ui/glassmorphism_ui.dart';
+import 'package:intl/intl.dart';
 
 class ExpenseTile extends StatelessWidget {
   const ExpenseTile({
@@ -38,7 +40,7 @@ class ExpenseTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "${date.day}/${date.month}/${date.year} ",
+                      "${date.day}/${DateFormat('MMM').format(selectedDate)}/${date.year} ",
                       style: text_theme_h(),
                     ),
                     SizedBox(
@@ -100,7 +102,7 @@ class ExpenseTile extends StatelessWidget {
               _buildPlaceholder(Icons.description, 'Description', note),
               SizedBox(height: 20),
               _buildPlaceholder(Icons.calendar_today,
-                  '${date.year}/${date.month}/${date.day}', null),
+                  '${date.day} - ${DateFormat('MMMM').format(selectedDate)} - ${date.year}', null),
               SizedBox(height: 20),
               _buildPlaceholder(Icons.access_time,
                   '${date.hour}:${date.minute}:${date.second}', null),

@@ -17,7 +17,6 @@ class _AddNameState extends State<AddName> {
   DbHelper dbHelper = DbHelper();
   String name = "";
   String? selectedUserType;
-  String? selectedImagePath;
   String? selectedIncomeLevel;
 
   @override
@@ -58,84 +57,92 @@ class _AddNameState extends State<AddName> {
             Text("We'd love to get to know you!", style: text_theme()),
             SizedBox(height: 40),
 
-            TextFormField(
-              onChanged: (value) {
-                name = value;
-              },
-              validator: validateFullName,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.person),
-                prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
-                hintText: "Name",
-                labelText: "Enter your name",
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.black, width: 1.5),
+            SizedBox(
+              height: 60,
+              child: TextFormField(
+                onChanged: (value) {
+                  name = value;
+                },
+                validator: validateFullName,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.person),
+                  prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
+                  hintText: "Name",
+                  labelText: "Enter your name",
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.black, width: 1.5),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                  labelStyle: GoogleFonts.poppins(),
+                  floatingLabelStyle: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(.7),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.red, width: 1.5),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.red, width: 1.5),
+                  ),
+                  errorStyle: TextStyle(color: Colors.red),
+                  errorMaxLines: 2,
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
-                labelStyle: GoogleFonts.poppins(),
-                floatingLabelStyle: GoogleFonts.poppins(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(.7),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.red, width: 1.5),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.red, width: 1.5),
-                ),
-                errorStyle: TextStyle(color: Colors.red),
-                errorMaxLines: 2,
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
             ),
 
             SizedBox(height: 20),
             // User Type Dropdown
-            Container(
-              width: 280,
-              child: DropdownButtonFormField<String>(
-                isExpanded: true,
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.work),
-                  prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: Colors.black, width: 1.5),
-                  ),
-                  border: OutlineInputBorder(
+            SizedBox(
+              height: 60,
+              child: Container(
+                width: 280,
+                height: 60,
+                child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.work),
+                    prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
+                    focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(.7),
+                      borderSide: BorderSide(color: Colors.black, width: 1.5),
+                    ),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(.7),
+                  ),
+                  value: selectedUserType,
+                  hint: Text('Select your job category'),
+                  items: userTypes.map((String userType) {
+                    return DropdownMenuItem<String>(
+                      value: userType,
+                      child: Text(userType),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedUserType = newValue;
+                    });
+                  },
                 ),
-                value: selectedUserType,
-                hint: Text('Select your job category'),
-                items: userTypes.map((String userType) {
-                  return DropdownMenuItem<String>(
-                    value: userType,
-                    child: Text(userType),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedUserType = newValue;
-                  });
-                },
               ),
             ),
             SizedBox(height: 20),
             Container(
               width: 280,
+              height: 60,
               child: DropdownButtonFormField<String>(
                 isExpanded: true,
                 decoration: InputDecoration(
@@ -178,7 +185,8 @@ class _AddNameState extends State<AddName> {
               onPressed: () async {
                 if (name.isNotEmpty &&
                     selectedUserType != null &&
-                    selectedIncomeLevel != null) {
+                    selectedIncomeLevel != null &&
+                    validateFullName(name) == null) {
                   // Save name, user type, and income level to SharedPreferences
                   SharedPreferences prefs =
                       await SharedPreferences.getInstance();
@@ -241,16 +249,29 @@ class _AddNameState extends State<AddName> {
   }
 
   String? validateFullName(String? value) {
-    final trimmedValue = value?.trim();
-
-    if (trimmedValue == null || trimmedValue.isEmpty) {
+    if (value == null || value.isEmpty) {
       return "Full Name is required";
+    }
+
+    final trimmedValue = value.trim();
+
+    if (trimmedValue.isEmpty ||
+        trimmedValue.length < 3 ||
+        trimmedValue == ' ') {
+      return 'Full Name must be at least 3 characters';
     }
 
     final RegExp nameRegExp = RegExp(r'^[a-zA-Z ]+$');
 
     if (!nameRegExp.hasMatch(trimmedValue)) {
       return 'Full Name can only contain letters and spaces';
+    }
+
+    // Check if the name contains at least three alphabetic characters
+    final alphaCharsCount =
+        trimmedValue.replaceAll(RegExp(r'[^a-zA-Z]'), '').length;
+    if (alphaCharsCount < 3) {
+      return 'Full Name must contain at least 3 letters';
     }
 
     return null;

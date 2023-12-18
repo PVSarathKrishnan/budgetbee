@@ -1,6 +1,7 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/screens/add_name.dart';
 import 'package:budgetbee/screens/home_page.dart';
+import 'package:budgetbee/screens/welcome_screen.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (name != null && name.isNotEmpty) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomePage(),
+          builder: (context) => WelcomeScreen(),
         ),
       );
     } else {
@@ -33,7 +34,6 @@ class _SplashScreenState extends State<SplashScreen> {
       );
     }
   }
-
 
   @override
   void initState() {

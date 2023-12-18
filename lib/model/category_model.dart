@@ -1,21 +1,14 @@
-// import 'package:hive_flutter/hive_flutter.dart';
-// part 'category_model.g.dart';
+import 'package:hive/hive.dart';
 
-// @HiveType(typeId: 2)
-// class CategoryModal {
-//   @HiveField(0)
-//   final int id;
+part 'category_model.g.dart'; // Generated file
 
-//   @HiveField(1)
-//   final String category;
+@HiveType(typeId: 1)
+class CategoryModel extends HiveObject {
+  @HiveField(0)
+  late String name;
 
-//   CategoryModal({required this.id, required this.category});
-// }
+  @HiveField(1)
+  late String type;
 
-// Future<void> addCat(CategoryModal value) async {
-//   final hospDB = await Hive.openBox<CategoryModal>('cat_db');
-//   final id = await hospDB.add(value);
-//   final data = hospDB.get(id);
-//   await hospDB.put(id, CategoryModal(category: data!.category, id: id));
-  
-// }
+  CategoryModel({required this.name, required this.type});
+}

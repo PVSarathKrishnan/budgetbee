@@ -1,11 +1,14 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/data/category_data.dart';
+import 'package:budgetbee/db/category_functions.dart';
+import 'package:budgetbee/model/category_model.dart';
 import 'package:budgetbee/model/usermodel.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 
@@ -16,7 +19,9 @@ class AddTransaction extends StatefulWidget {
   State<AddTransaction> createState() => _AddTransactionState();
 }
 
+TextEditingController _addCategoryController = TextEditingController();
 TextEditingController _categoryTextController = TextEditingController();
+late CategoryFunctions categoryFunctions;
 int? amount;
 String note = "Some Transaction";
 String type = "Income";
@@ -25,11 +30,22 @@ String? selectedCategory;
 String? _enteredText;
 
 class _AddTransactionState extends State<AddTransaction> {
+  Future<void> loadCategories() async {
+    await Hive.initFlutter();
+    categoryFunctions = CategoryFunctions();
+    await categoryFunctions.setupCategories();
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
     // call the function to get the user
-
+    categoryFunctions = CategoryFunctions();
+    if (categoryFunctions.getExpenseCategories().isEmpty ||
+        categoryFunctions.getIncomeCategories().isEmpty) {
+      loadCategories();
+    }
     setState(() {}); //moved from getuser, commented it there because of error
   }
 
@@ -85,17 +101,16 @@ class _AddTransactionState extends State<AddTransaction> {
                             type == "Income" ? 22 : 16),
                       ),
                     ),
-                    selected: type == "Income",
+                    selected: type == "Income" ? true : false,
                     selectedColor: Color.fromARGB(255, 17, 187, 23),
                     onSelected: (value) {
                       if (value) {
                         setState(() {
                           amount = null;
-                          note = "Some Transaction";
+                          note = "";
                           type = "Income";
                           selectedDate = DateTime.now();
                           selectedCategory = null;
-                          _categoryTextController.clear();
                         });
                       }
                     },
@@ -114,17 +129,16 @@ class _AddTransactionState extends State<AddTransaction> {
                                   : const Color.fromARGB(255, 255, 255, 255),
                               type == "Income" ? 16 : 22)),
                     ),
-                    selected: type == "Expense",
+                    selected: type == "Expense" ? true : false,
                     selectedColor: Color.fromARGB(255, 255, 35, 19),
                     onSelected: (value) {
                       if (value) {
                         setState(() {
                           amount = null;
-                          note = "Some Transaction";
+                          note = "";
                           type = "Expense";
                           selectedDate = DateTime.now();
                           selectedCategory = null;
-                          _categoryTextController.clear();
                         });
                       }
                     },
@@ -204,89 +218,115 @@ class _AddTransactionState extends State<AddTransaction> {
                 height: 20,
               ),
               //TypeAheadFormField<String>(),
-              Container(
-                width: 250,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Color(0XFF9486F7),
-                ),
-                child: TypeAheadField<String?>(
-                  textFieldConfiguration: TextFieldConfiguration(
-                      controller: _categoryTextController,
-                      onChanged: (text) {
-                        _enteredText = text;
-                        print("entered text : $_enteredText");
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search Category',
-                        hintStyle: text_theme_color(Colors.white),
-                        contentPadding: EdgeInsets.only(left: 8),
-                        border: InputBorder.none,
-                      ),
-                      style: text_theme()),
-                  suggestionsCallback: (String? pattern) {
-                    return type == 'Income'
-                        ? incomeCategory
-                            .where((item) => item
-                                .toLowerCase()
-                                .contains(pattern?.toLowerCase() ?? ''))
-                            .toList()
-                        : expenseCategory
-                            .where((item) => item
-                                .toLowerCase()
-                                .contains(pattern?.toLowerCase() ?? ''))
-                            .toList();
-                  },
-                  itemBuilder: (BuildContext context, String? suggestion) {
-                    return Container(
-                      decoration: BoxDecoration(
-                          color: Color(0xff04CE9A),
-                          border:
-                              Border(bottom: BorderSide(color: Colors.white))),
-                      child: ListTile(
-                        title: Text(
-                          suggestion ?? '',
-                          style: text_theme(),
-                        ),
-                      ),
-                    );
-                  },
-                  noItemsFoundBuilder: (
-                    BuildContext context,
-                  ) {
-                    return Container(
-                        alignment: Alignment.center,
-                        height: 60,
-                        decoration: BoxDecoration(
-                            color: Color(0xff04CE9A),
-                            border: Border(
-                                bottom: BorderSide(color: Colors.white))),
-                        child: Padding(
-                          padding: const EdgeInsets.all(2.0),
-                          child: Text(
-                            "If No match,type to add your own",
-                            style: text_theme_color_size(Colors.white, 14.2),
-                            textAlign: TextAlign.center,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 250,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Color(0XFF9486F7),
+                    ),
+                    child: TypeAheadField<String?>(
+                      textFieldConfiguration: TextFieldConfiguration(
+                          controller: _categoryTextController,
+                          onChanged: (text) {
+                            _enteredText = text;
+                            print("entered text : $_enteredText");
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search Category',
+                            hintStyle: text_theme_color(Colors.white),
+                            contentPadding: EdgeInsets.only(left: 8),
+                            border: InputBorder.none,
                           ),
-                        ));
-                  },
-                  onSuggestionSelected: (String? suggestion) {
-                    setState(() {
-                      if (suggestion != null && suggestion.isNotEmpty) {
-                        _categoryTextController.text = suggestion;
-                        selectedCategory = suggestion;
-                        note = suggestion;
-                      } else {
-                        if (_enteredText != null && _enteredText!.isNotEmpty) {
-                          _categoryTextController.text = _enteredText!;
-                          selectedCategory = _enteredText!;
-                          note = _enteredText!;
-                        }
-                      }
-                    });
-                  },
-                  getImmediateSuggestions: true,
-                ),
+                          style: text_theme()),
+                      suggestionsCallback: (String? pattern) {
+                        final categories = type == 'Income'
+                            ? categoryFunctions.getIncomeCategories()
+                            : categoryFunctions.getExpenseCategories();
+
+                        return categories
+                            .where((item) => item.name
+                                .toLowerCase()
+                                .contains(pattern?.toLowerCase() ?? ''))
+                            .map((category) => category
+                                .name) // Extract the name from CategoryModel
+                            .toList(); // Convert to a List<String>
+                      },
+                      itemBuilder: (BuildContext context, String? suggestion) {
+                        return Container(
+                          decoration: BoxDecoration(
+                              color: Color(0xff04CE9A),
+                              border: Border(
+                                  bottom: BorderSide(color: Colors.white))),
+                          child: ListTile(
+                            title: Text(
+                              suggestion ?? '',
+                              style: text_theme(),
+                            ),
+                          ),
+                        );
+                      },
+                      noItemsFoundBuilder: (
+                        BuildContext context,
+                      ) {
+                        return Container(
+                            alignment: Alignment.center,
+                            height: 60,
+                            decoration: BoxDecoration(
+                                color: Color(0xff04CE9A),
+                                border: Border(
+                                    bottom: BorderSide(color: Colors.white))),
+                            child: Padding(
+                              padding: const EdgeInsets.all(2.0),
+                              child: Text(
+                                "If No match,type to add your own",
+                                style:
+                                    text_theme_color_size(Colors.white, 14.2),
+                                textAlign: TextAlign.center,
+                              ),
+                            ));
+                      },
+                      onSuggestionSelected: (String? suggestion) {
+                        setState(() {
+                          if (suggestion != null && suggestion.isNotEmpty) {
+                            _categoryTextController.text =
+                                suggestion; // Update the text controller
+                            selectedCategory = suggestion;
+                            note = suggestion;
+                          } else {
+                            if (_enteredText != null &&
+                                _enteredText!.isNotEmpty) {
+                              _categoryTextController.text = _enteredText!;
+                              selectedCategory = _enteredText!;
+                              note = _enteredText!;
+                            }
+                          }
+                        });
+                      },
+                      getImmediateSuggestions: true,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Color(0XFF9486F7).withOpacity(.4),
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        _showAddCategoryDialog(context);
+                      },
+                      icon: Icon(Icons.add),
+                      tooltip: "Add a Category",
+                    ),
+                  ),
+                ],
               ),
 
               SizedBox(
@@ -368,6 +408,57 @@ class _AddTransactionState extends State<AddTransaction> {
         ),
       ),
     );
+  }
+
+  void _showAddCategoryDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add a Category'),
+          content: TextField(
+            controller: _addCategoryController,
+            decoration: InputDecoration(
+              hintText: 'Enter Category Name',
+            ),
+            onSubmitted: (String value) async {
+              // Add the submitted category to the default list
+              await categoryFunctions.addCategoryToDefaultList(value, type);
+
+              setState(() {
+                selectedCategory = value;
+              });
+              Navigator.pop(context); // Close the dialog after adding
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog without adding
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  selectedCategory = _categoryTextController.text;
+                  _categoryTextController.clear(); // Clear the text controller
+                });
+                Navigator.pop(context); // Close the dialog after adding
+              },
+              child: Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void handleCategoryAddition(String category) {
+    String selectedType =
+        type; // Assuming 'type' is the selected type from choice chip
+
+    categoryFunctions.addCategoryToDefaultList(category, selectedType);
   }
 
   void showSnackBar(BuildContext context, String message) {
