@@ -1,7 +1,6 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/widgets/incometile.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class IncomeOnly extends StatefulWidget {
   const IncomeOnly({super.key});

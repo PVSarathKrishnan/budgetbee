@@ -1,4 +1,3 @@
-import 'package:budgetbee/screens/add_transaction.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism_ui/glassmorphism_ui.dart';
@@ -40,7 +39,7 @@ class ExpenseTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "${date.day}/${DateFormat('MMM').format(selectedDate)}/${date.year} ",
+                      "${date.day}/${DateFormat('MMM').format(date)}/${date.year} ",
                       style: text_theme_h(),
                     ),
                     SizedBox(
@@ -101,8 +100,10 @@ class ExpenseTile extends StatelessWidget {
               SizedBox(height: 20),
               _buildPlaceholder(Icons.description, 'Description', note),
               SizedBox(height: 20),
-              _buildPlaceholder(Icons.calendar_today,
-                  '${date.day} - ${DateFormat('MMMM').format(selectedDate)} - ${date.year}', null),
+              _buildPlaceholder(
+                  Icons.calendar_today,
+                  '${date.day} - ${DateFormat('MMMM').format(date)} - ${date.year}',
+                  null),
               SizedBox(height: 20),
               _buildPlaceholder(Icons.access_time,
                   '${date.hour}:${date.minute}:${date.second}', null),
@@ -114,6 +115,7 @@ class ExpenseTile extends StatelessWidget {
     );
   }
 }
+
 Widget _buildPlaceholder(IconData icon, String title, dynamic value) {
   final String displayedText = value != null ? '$value' : title;
 
@@ -158,5 +160,3 @@ Widget _buildPlaceholder(IconData icon, String title, dynamic value) {
     ),
   );
 }
-
-

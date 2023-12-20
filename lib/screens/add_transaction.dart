@@ -1,13 +1,9 @@
 import 'package:budgetbee/controllers/db_helper.dart';
-import 'package:budgetbee/data/category_data.dart';
 import 'package:budgetbee/db/category_functions.dart';
-import 'package:budgetbee/model/category_model.dart';
-import 'package:budgetbee/model/usermodel.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
@@ -68,7 +64,10 @@ class _AddTransactionState extends State<AddTransaction> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Color(0XFF9486F7),
-        title: Text("ADD TRANSACTION"),
+        title: Text(
+          "ADD TRANSACTION",
+          style: text_theme_h(),
+        ),
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -380,7 +379,7 @@ class _AddTransactionState extends State<AddTransaction> {
                       amount = null;
                       note = "";
                       type = "Income";
-                      selectedDate = DateTime.now();
+
                       selectedCategory = null;
                       _enteredText = "";
                       _categoryTextController.clear();
@@ -423,12 +422,7 @@ class _AddTransactionState extends State<AddTransaction> {
             ),
             onSubmitted: (String value) async {
               // Add the submitted category to the default list
-              await categoryFunctions.addCategoryToDefaultList(value, type);
-
-              setState(() {
-                selectedCategory = value;
-              });
-              Navigator.pop(context); // Close the dialog after adding
+              await _addCategory(value, context);
             },
           ),
           actions: [
@@ -439,12 +433,9 @@ class _AddTransactionState extends State<AddTransaction> {
               child: Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                setState(() {
-                  selectedCategory = _categoryTextController.text;
-                  _categoryTextController.clear(); // Clear the text controller
-                });
-                Navigator.pop(context); // Close the dialog after adding
+              onPressed: () async {
+                // Add the category to the default list
+                await _addCategory(_addCategoryController.text, context);
               },
               child: Text('Add'),
             ),
@@ -454,11 +445,20 @@ class _AddTransactionState extends State<AddTransaction> {
     );
   }
 
-  void handleCategoryAddition(String category) {
-    String selectedType =
-        type; // Assuming 'type' is the selected type from choice chip
+  Future<void> _addCategory(String category, BuildContext context) async {
+    if (category.isNotEmpty) {
+      // Add the category to the default list based on the current 'type'
+      await categoryFunctions.addCategoryToDefaultList(category, type);
 
-    categoryFunctions.addCategoryToDefaultList(category, selectedType);
+      // Clear the text field after adding the category
+      _categoryTextController.clear();
+
+      setState(() {
+        selectedCategory = category;
+      });
+
+      Navigator.pop(context); // Close the dialog after adding
+    }
   }
 
   void showSnackBar(BuildContext context, String message) {

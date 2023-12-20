@@ -1,6 +1,6 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/data/category_data.dart';
-import 'package:budgetbee/screens/home_page.dart';
+import 'package:budgetbee/screens/welcome_screen.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -200,7 +200,7 @@ class _AddNameState extends State<AddName> {
                   // Move to HomePage
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (context) => HomePage(),
+                      builder: (context) => WelcomeScreen(),
                     ),
                   );
                 } else {

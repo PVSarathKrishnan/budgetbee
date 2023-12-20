@@ -1,6 +1,5 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/screens/add_name.dart';
-import 'package:budgetbee/screens/home_page.dart';
 import 'package:budgetbee/screens/welcome_screen.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';

@@ -7,6 +7,7 @@ import 'package:budgetbee/style/text_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 
 class StatPage extends StatefulWidget {
   const StatPage({Key? key});
@@ -103,7 +104,7 @@ class _StatPageState extends State<StatPage> {
                       padding: const EdgeInsets.only(
                           left: 15.0, right: 8, bottom: 8, top: 8),
                       child: Text(
-                        "Expense Pi Chart - ${DateFormat('MMMM').format(selectedDate)}",
+                        "Expense Pi Chart - ${DateFormat('MMMM').format(DateTime.now())}",
                         style: text_theme_h(),
                       ),
                     ),
@@ -130,6 +131,29 @@ class _StatPageState extends State<StatPage> {
                             } else if (pieSnapshot.hasError) {
                               return Center(child: Text('Error loading data'));
                             } else if (pieSnapshot.hasData) {
+                              if (pieSnapshot.data!.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 200,
+                                        child: Text(
+                                          'Add expenses to see the pie chart.',
+                                          style: text_theme_h().copyWith(
+                                              color: Color(0XFF9486F7)),
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Lottie.asset(
+                                        "lib/assets/nodatachart.json",
+                                        height: 100,
+                                        width: 180,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                               return Padding(
                                 padding: const EdgeInsets.all(28.0),
                                 child: PieChart(
@@ -148,7 +172,7 @@ class _StatPageState extends State<StatPage> {
                       padding: const EdgeInsets.only(
                           left: 15.0, right: 8, bottom: 8, top: 8),
                       child: Text(
-                        "Income Pi Chart - ${DateFormat('MMMM').format(selectedDate)}",
+                        "Income Pi Chart - ${DateFormat('MMMM').format(DateTime.now())}",
                         style: text_theme_h(),
                       ),
                     ),
@@ -196,7 +220,7 @@ class _StatPageState extends State<StatPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Expense Analysis - ${DateFormat('MMMM').format(selectedDate)}",
+                            "Expense Analysis - ${DateFormat('MMMM').format(DateTime.now())}",
                             style: text_theme_h(),
                           ),
                           IconButton(
@@ -254,7 +278,7 @@ class _StatPageState extends State<StatPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Income Analysis - ${DateFormat('MMMM').format(selectedDate)}",
+                            "Income Analysis - ${DateFormat('MMMM').format(DateTime.now())}",
                             style: text_theme_h(),
                           ),
                           IconButton(
@@ -319,7 +343,7 @@ class _StatPageState extends State<StatPage> {
     return AlertDialog(
       backgroundColor: Colors.white, // Change the background color here
       title: Text('Chart Information',
-          style: text_theme()), // Set the text style for the title
+          style: text_theme_h()), // Set the text style for the title
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,19 +357,18 @@ class _StatPageState extends State<StatPage> {
           ),
           Text(
             'Represents the dates in the chart.',
-            style: text_theme(), // Set the text style for the content
+            style: text_theme_p().copyWith(
+                color: Color(0XFF9486F7)), // Set the text style for the content
           ),
           SizedBox(height: 10),
           Text(
             'Vertical Axis: Amount',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color:
-                    text_theme().color), // Set the text style for the content
+            style: text_theme(), // Set the text style for the content
           ),
           Text(
             'Denotes the amount of transaction',
-            style: text_theme(), // Set the text style for the content
+            style: text_theme_p().copyWith(
+                color: Color(0XFF9486F7)), // Set the text style for the content
           ),
         ],
       ),
@@ -354,8 +377,10 @@ class _StatPageState extends State<StatPage> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: Text('Close',
-              style: text_theme()), // Set the text style for the action
+          child: Text(
+            'Close',
+            style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
+          ), // Set the text style for the action
         ),
       ],
     );

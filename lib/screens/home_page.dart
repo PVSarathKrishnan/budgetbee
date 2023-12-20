@@ -5,20 +5,16 @@ import 'package:budgetbee/model/transaction_modal.dart';
 import 'package:budgetbee/model/usermodel.dart';
 import 'package:budgetbee/screens/bnb_mainpage.dart';
 import 'package:budgetbee/screens/about_screen.dart';
-import 'package:budgetbee/screens/add_name.dart';
 import 'package:budgetbee/screens/add_transaction.dart';
 import 'package:budgetbee/screens/edit_profile_page.dart';
 import 'package:budgetbee/screens/statistics_pag.dart';
-import 'package:budgetbee/screens/transaction_history.dart';
 import 'package:budgetbee/screens/tutorial_page.dart';
-import 'package:budgetbee/screens/unused_pages/editprofilescreen.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:budgetbee/widgets/expensecard.dart';
 import 'package:budgetbee/widgets/expensetile.dart';
 import 'package:budgetbee/widgets/incomecard.dart';
 import 'package:budgetbee/widgets/incometile.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:glassmorphism_ui/glassmorphism_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
@@ -58,14 +54,12 @@ class _HomePageState extends State<HomePage> {
     totalIncome = 0;
     totalExpense = 0;
     for (TransactionModal data in entireData) {
-      if (data.date.month == today.month) {
-        if (data.type == "Income") {
-          totalBalance += data.amount;
-          totalIncome += data.amount;
-        } else if (data.type == "Expense") {
-          totalBalance -= data.amount;
-          totalExpense += data.amount;
-        }
+      if (data.type == "Income") {
+        totalBalance += data.amount;
+        totalIncome += data.amount;
+      } else if (data.type == "Expense") {
+        totalBalance -= data.amount;
+        totalExpense += data.amount;
       }
     }
   }
@@ -353,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Text(
-                            "Expense Tracker - ${DateFormat('MMMM').format(selectedDate)}",
+                            "Expense Tracker - ${DateFormat('MMMM').format(DateTime.now())}",
                             style: text_theme_h(),
                           ),
                         ),
@@ -404,15 +398,40 @@ class _HomePageState extends State<HomePage> {
                             } else if (pieSnapshot.hasError) {
                               return Center(child: Text('Error loading data'));
                             } else if (pieSnapshot.hasData) {
-                              return Padding(
-                                padding: const EdgeInsets.all(28.0),
-                                child: PieChart(
-                                  PieChartData(
-                                    sections: pieSnapshot.data!,
-                                    // Add more configurations for the PieChart as needed
+                              if (pieSnapshot.data!.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 200,
+                                        child: Text(
+                                          'Add expenses to see the pie chart.',
+                                          style: text_theme_h().copyWith(
+                                              color: Color(0XFF9486F7)),
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Lottie.asset(
+                                        "lib/assets/nodatachart.json",
+                                        height: 100,
+                                        width: 180,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              );
+                                );
+                              }
+                              return Padding(
+                                  padding: const EdgeInsets.all(28.0),
+                                  child: PieChart(PieChartData(
+                                    sections: pieSnapshot.data!,
+                                    sectionsSpace:
+                                        1, // Adjust the space between sections as needed
+                                    centerSpaceRadius: MediaQuery.of(context)
+                                            .size
+                                            .width *
+                                        0.25, // Adjust the center hole radius
+                                  )));
                             } else {
                               return Center(child: Text('No data available'));
                             }
@@ -499,6 +518,26 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Container(
+                height: 50,
+                width: 180,
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 255, 254, 254),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Profile",
+                    style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
               Container(
                 width: 390,
                 padding: EdgeInsets.all(8),

@@ -38,12 +38,12 @@ class _AddIncomeState extends State<AddIncome> {
   void initState() {
     super.initState();
     // call the function to get the user
-    
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0XFFF5F6F8),
+        backgroundColor: Color(0XFFF5F6F8),
         appBar: AppBar(
           backgroundColor: Color(0XFF9486F7),
           toolbarHeight: 0,
@@ -133,12 +133,12 @@ class _AddIncomeState extends State<AddIncome> {
               width: 250,
               height: 40,
               child: DropdownButtonFormField(
-              validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Enter select an option';
-                        }
-                        return null;
-                      },
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Enter select an option';
+                  }
+                  return null;
+                },
                 value: _selectedIncomeSource,
                 onChanged: (String? newValue) {
                   setState(() {
@@ -178,7 +178,7 @@ class _AddIncomeState extends State<AddIncome> {
             // Elevated button for adding to income
             ElevatedButton(
               onPressed: () {
-                _controllerIncome.clear();  
+                _controllerIncome.clear();
               },
               child: Text(
                 "ADD TO INCOME",
@@ -199,6 +199,4 @@ class _AddIncomeState extends State<AddIncome> {
           ]),
         ));
   }
-
-
 }

@@ -1,4 +1,3 @@
-import 'package:budgetbee/screens/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -85,7 +84,9 @@ class _AboutScreenState extends State<AboutScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20,),
+                  SizedBox(
+                    height: 20,
+                  ),
                   Container(
                     height: 40,
                     width: 40,
@@ -96,10 +97,12 @@ class _AboutScreenState extends State<AboutScreen> {
                           BorderRadius.circular(12), // Setting border radius
                     ),
                     child: IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: Icon(Icons.arrow_back),iconSize: 25,),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(Icons.arrow_back),
+                      iconSize: 25,
+                    ),
                   )
                 ],
               ),

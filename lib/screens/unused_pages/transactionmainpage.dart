@@ -323,7 +323,7 @@
 // //                             SizedBox(height: 30),
 // //                             // Separator line
 // //                             Container(
-// //                               width: double.infinity,
+// //                              
 // //                               height: 5,
 // //                               color: Colors.white.withOpacity(.5),
 // //                             ),

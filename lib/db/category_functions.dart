@@ -22,6 +22,8 @@ class CategoryFunctions {
   }
 
   Future<void> _addDefaultExpenseCategories(Box<CategoryModel> box) async {
+    final existingCategories = getExpenseCategories();
+
     final defaultExpenseCategories = [
       "Food",
       "Transportation",
@@ -40,12 +42,20 @@ class CategoryFunctions {
     ];
 
     for (var category in defaultExpenseCategories) {
-      final categoryModel = CategoryModel(name: category, type: 'Expense');
-      await box.add(categoryModel);
+      if (!existingCategories.any(
+          (element) => element.name.toLowerCase() == category.toLowerCase())) {
+        final categoryModel = CategoryModel(name: category, type: 'Expense');
+        await box.add(categoryModel);
+        print('Added default expense category: $category');
+      } else {
+        print('Expense category already exists: $category');
+      }
     }
   }
 
   Future<void> _addDefaultIncomeCategories(Box<CategoryModel> box) async {
+    final existingCategories = getIncomeCategories();
+
     final defaultIncomeCategories = [
       "Salary",
       "Freelancing",
@@ -58,8 +68,14 @@ class CategoryFunctions {
     ];
 
     for (var category in defaultIncomeCategories) {
-      final categoryModel = CategoryModel(name: category, type: 'Income');
-      await box.add(categoryModel);
+      if (!existingCategories.any(
+          (element) => element.name.toLowerCase() == category.toLowerCase())) {
+        final categoryModel = CategoryModel(name: category, type: 'Income');
+        await box.add(categoryModel);
+        print('Added default income category: $category');
+      } else {
+        print('Income category already exists: $category');
+      }
     }
   }
 
@@ -84,21 +100,24 @@ class CategoryFunctions {
     final incomeCategoryBox = Hive.box<CategoryModel>(incomeBoxName);
     final expenseCategoryBox = Hive.box<CategoryModel>(expenseBoxName);
 
-    final categoryModel = CategoryModel(name: category, type: type);
+    final categoryModel =
+        CategoryModel(name: category, type: type.toLowerCase());
 
-    if (categoryModel != null) {
-      final List<CategoryModel> existingCategories =
-          type == 'Income' ? getIncomeCategories() : getExpenseCategories();
+    // Get the appropriate box based on the type
+    final Box<CategoryModel> box =
+        type.toLowerCase() == 'income' ? incomeCategoryBox : expenseCategoryBox;
 
-      // Check if the category already exists before adding it
-      if (!existingCategories.any(
-          (element) => element.name.toLowerCase() == category.toLowerCase())) {
-        if (categoryModel.type == 'Income') {
-          await incomeCategoryBox.add(categoryModel);
-        } else {
-          await expenseCategoryBox.add(categoryModel);
-        }
-      }
+    // Check if the category already exists before adding it
+    final existingCategories = box.values.toList();
+    final categoryExists = existingCategories.any((element) =>
+        element.name.toLowerCase() == category.toLowerCase() &&
+        element.type.toLowerCase() == type.toLowerCase());
+
+    if (!categoryExists) {
+      await box.add(categoryModel);
+      print('Category added: $categoryModel');
+    } else {
+      print('Category already exists: $categoryModel');
     }
   }
 }

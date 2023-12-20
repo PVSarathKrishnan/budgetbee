@@ -1,3 +1,4 @@
+import 'package:budgetbee/data/category_data.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,8 +13,8 @@ class EditProfile extends StatefulWidget {
 
 class _EditProfileState extends State<EditProfile> {
   TextEditingController _nameController = TextEditingController();
-  TextEditingController _userTypeController = TextEditingController();
-  TextEditingController _incomeLevelController = TextEditingController();
+  String? selectedUserType;
+  String? selectedIncomeLevel;
 
   @override
   void initState() {
@@ -26,16 +27,16 @@ class _EditProfileState extends State<EditProfile> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _nameController.text = prefs.getString('name') ?? '';
-      _userTypeController.text = prefs.getString('userType') ?? '';
-      _incomeLevelController.text = prefs.getString('incomeLevel') ?? '';
+      selectedUserType = prefs.getString('userType');
+      selectedIncomeLevel = prefs.getString('incomeLevel');
     });
   }
 
   Future<void> _saveProfileData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('name', _nameController.text);
-    prefs.setString('userType', _userTypeController.text);
-    prefs.setString('incomeLevel', _incomeLevelController.text);
+    prefs.setString('userType', selectedUserType ?? '');
+    prefs.setString('incomeLevel', selectedIncomeLevel ?? '');
   }
 
   @override
@@ -48,44 +49,102 @@ class _EditProfileState extends State<EditProfile> {
         backgroundColor: Color(0XFF9486F7),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(30.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-           
-            SizedBox(
-              height: 40,
-            ),
-            TextFormField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(30.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 40,
               ),
-              style: text_theme_h(), // Apply font style here
-            ),
-            SizedBox(height: 30.0),
-            TextFormField(
-              controller: _userTypeController,
-              decoration: InputDecoration(
-                labelText: 'User Type',
-                border: OutlineInputBorder(),
-              ),
-              style: text_theme(), // Apply font style here
-            ),
-            SizedBox(height: 30.0),
-            TextFormField(
-                controller: _incomeLevelController,
+              TextFormField(
+                controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Income Level',
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                  prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
+                  hintText: "Name",
+                  labelText: "Enter your name",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  labelStyle: GoogleFonts.poppins(),
+                  floatingLabelStyle: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(.7),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 ),
-                style: text_theme() // Apply font style here
+                style: text_theme_h(), // Apply font style here
+              ),
+              SizedBox(height: 30.0),
+              DropdownButtonFormField<String>(
+                value: selectedUserType,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.work),
+                  prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
+                  hintText: "User Type",
+                  labelText: "Select your user type",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  labelStyle: GoogleFonts.poppins(),
+                  floatingLabelStyle: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(.7),
                 ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
+                items: userTypes.map((String userType) {
+                  return DropdownMenuItem<String>(
+                    value: userType,
+                    child: Text(userType),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedUserType = newValue;
+                  });
+                },
+              ),
+              SizedBox(height: 30.0),
+              DropdownButtonFormField<String>(
+                value: selectedIncomeLevel,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.currency_rupee),
+                  prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
+                  hintText: "Income Level",
+                  labelText: "Select your income level",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  labelStyle: GoogleFonts.poppins(),
+                  floatingLabelStyle: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(.7),
+                ),
+                items: incomeLevels.map((String income) {
+                  return DropdownMenuItem<String>(
+                    value: income,
+                    child: Text(income),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedIncomeLevel = newValue;
+                  });
+                },
+              ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
                 onPressed: () {
                   _saveProfileData();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -99,8 +158,10 @@ class _EditProfileState extends State<EditProfile> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                style: button_theme()),
-          ],
+                style: button_theme(),
+              ),
+            ],
+          ),
         ),
       ),
     );
