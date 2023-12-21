@@ -6,7 +6,9 @@ import 'package:budgetbee/model/usermodel.dart';
 import 'package:budgetbee/screens/bnb_mainpage.dart';
 import 'package:budgetbee/screens/about_screen.dart';
 import 'package:budgetbee/screens/add_transaction.dart';
+import 'package:budgetbee/screens/deletesplash.dart';
 import 'package:budgetbee/screens/edit_profile_page.dart';
+import 'package:budgetbee/screens/reminder_screen.dart';
 import 'package:budgetbee/screens/statistics_pag.dart';
 import 'package:budgetbee/screens/tutorial_page.dart';
 import 'package:budgetbee/style/text_theme.dart';
@@ -14,6 +16,8 @@ import 'package:budgetbee/widgets/expensecard.dart';
 import 'package:budgetbee/widgets/expensetile.dart';
 import 'package:budgetbee/widgets/incomecard.dart';
 import 'package:budgetbee/widgets/incometile.dart';
+import 'package:budgetbee/widgets/reset_data_button.dart';
+import 'package:budgetbee/widgets/show_warning.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -73,10 +77,17 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Color(0XFF9486F7),
           toolbarHeight: 50,
           leading: Tooltip(
-            message: "Your'e in Home Page of BudgetBee",
-            child: Icon(
-              Icons.home,
-              color: Colors.white,
+            message: "Set reminder",
+            child: IconButton(
+              icon: Icon(
+                Icons.alarm_add_sharp,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => ReminderPage(),
+                ));
+              },
             ),
           ),
           title: Text(
@@ -176,32 +187,39 @@ class _HomePageState extends State<HomePage> {
                 ),
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => TutorialPage(),
+                    builder: (context) =>
+                        TutorialPage(), // Tutorial page (Incomplete)
                   ));
+                },
+              ),
+              ListTile(
+                title: Row(
+                  children: [
+                    Icon(Icons.dangerous_rounded,
+                        color: Color.fromARGB(255, 255, 0, 0)),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text('Reset All data',
+                        style: text_theme()
+                            .copyWith(color: Color.fromARGB(255, 255, 0, 0))),
+                  ],
+                ),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return show_warning(box: box, context: context);
+                    },
+                  );
+                  // Logic for clearing all data and redirect to AddName page like for a anew user enrtry
                 },
               ),
             ],
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.of(context)
-                .push(MaterialPageRoute(
-              builder: (context) => AddTransaction(),
-            ))
-                .whenComplete(() {
-              setState(() {});
-            });
-          },
-          backgroundColor: Color(0XFF9486F7),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Icon(
-            Icons.add,
-            size: 32,
-          ),
-        ),
+        floatingActionButton: floating_button_home(context),
         body: FutureBuilder<List<TransactionModal>>(
             future: fetch(),
             builder: (context, snapshot) {
@@ -341,6 +359,55 @@ class _HomePageState extends State<HomePage> {
                         ]),
                       ),
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            "Budget Calculator - 'Item Name'",
+                            style: text_theme_h(),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: Container(
+                            height: 45,
+                            width: 45,
+                            decoration: BoxDecoration(
+                                color: Color(0XFF9486F7),
+                                borderRadius: BorderRadius.circular(60)),
+                            child: IconButton(
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => StatPage(),
+                                ));
+                              },
+                              icon: Icon(
+                                Icons.navigate_next_sharp,
+                                size: 30,
+                              ),
+                              tooltip: "Your Budget Plan",
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                    Container(
+                        height: 400,
+                        padding: EdgeInsets.all(18),
+                        margin: EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.grey.withOpacity(.4),
+                                  spreadRadius: 5,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 4))
+                            ]),
+                        child: Container()),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -502,6 +569,27 @@ class _HomePageState extends State<HomePage> {
                 );
               }
             }));
+  }
+
+  FloatingActionButton floating_button_home(BuildContext context) {
+    return FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context)
+              .push(MaterialPageRoute(
+            builder: (context) => AddTransaction(),
+          ))
+              .whenComplete(() {
+            setState(() {});
+          });
+        },
+        backgroundColor: Color(0XFF9486F7),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Icon(
+          Icons.add,
+          size: 32,
+        ),
+      );
   }
 
   void _showProfileModal(BuildContext context) {

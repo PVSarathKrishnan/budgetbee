@@ -1,6 +1,8 @@
+import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/screens/add_transaction.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:glassmorphism_ui/glassmorphism_ui.dart';
 import 'package:intl/intl.dart';
 
@@ -20,51 +22,89 @@ class IncomeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onDoubleTap: () {
-        _showCustomBottomSheet(context);
-      },
-      child: Container(
-        padding: EdgeInsets.all(18),
-        margin: EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Color.fromARGB(255, 226, 226, 226),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${date.day}/${DateFormat('MMM').format(selectedDate)}/${date.year}",
-                      style: text_theme_h(),
-                    ),
-                    SizedBox(
-                      width: 200,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Text(
-                          "${note}",
-                          style: text_theme(),
+    return Slidable(
+      key: Key(value.toString()), // Specify a unique key for each Slidable
+      startActionPane: ActionPane(
+        motion: ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return showWarning(context); // Show the warning dialog
+                },
+              );
+            },
+            backgroundColor: Color.fromARGB(255, 255, 0, 0),
+            foregroundColor: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            icon: Icons.delete,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      endActionPane: ActionPane(
+        motion: ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) {
+              // Edit thetransaction.
+            },
+            backgroundColor: Color.fromARGB(255, 0, 115, 255),
+            foregroundColor: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            icon: Icons.edit_document,
+            label: 'Edit',
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onDoubleTap: () {
+          _showCustomBottomSheet(context);
+        },
+        child: Container(
+          padding: EdgeInsets.all(18),
+          margin: EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Color.fromARGB(255, 226, 226, 226),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${date.day}/${DateFormat('MMM').format(selectedDate)}/${date.year}",
+                        style: text_theme_h(),
+                      ),
+                      SizedBox(
+                        width: 200,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            "${note}",
+                            style: text_theme(),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  width: 30,
-                ),
-                Text(
-                  "+$value",
-                  style: text_theme_color_size(Colors.green, 22),
-                ),
-              ],
-            )
-          ],
+                    ],
+                  ),
+                  SizedBox(
+                    width: 30,
+                  ),
+                  Text(
+                    "+$value",
+                    style: text_theme_color_size(Colors.green, 22),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -101,8 +141,10 @@ class IncomeTile extends StatelessWidget {
               SizedBox(height: 20),
               _buildPlaceholder(Icons.description, 'Description', note),
               SizedBox(height: 20),
-              _buildPlaceholder(Icons.calendar_today,
-                  '${date.day}/${DateFormat('MMMM').format(selectedDate)}/${date.year}', null),
+              _buildPlaceholder(
+                  Icons.calendar_today,
+                  '${date.day}/${DateFormat('MMMM').format(selectedDate)}/${date.year}',
+                  null),
               SizedBox(height: 20),
               _buildPlaceholder(Icons.access_time,
                   '${date.hour}:${date.minute}:${date.second}', null),
@@ -157,5 +199,58 @@ Widget _buildPlaceholder(IconData icon, String title, dynamic value) {
         ),
       ),
     ),
+  );
+}
+
+AlertDialog showWarning(BuildContext context) {
+  return AlertDialog(
+    backgroundColor: Colors.white, // Change the background color here
+    title: Text('Warning!',
+        style: text_theme_h().copyWith(
+            color: const Color.fromARGB(
+                255, 255, 17, 0))), // Set the text style for the title
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Are you sure you want to erase this transaction?',
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: text_theme().color), // Set the text style for the content
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Text(
+          'This action will delete the data permanently!',
+          style: text_theme_p().copyWith(
+              fontSize: 15,
+              color: Color.fromARGB(
+                  255, 111, 111, 111)), // Set the text style for the content
+        ),
+      ],
+    ),
+    actions: <Widget>[
+      TextButton(
+        onPressed: () async {
+          // Deletion of transaction
+        },
+
+        child: Text(
+          'Delete ',
+          style: text_theme_h().copyWith(color: Color.fromARGB(255, 255, 0, 0)),
+        ), // Set the text style for the action
+      ),
+      TextButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        child: Text(
+          'Close',
+          style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
+        ), // Set the text style for the action
+      ),
+    ],
   );
 }

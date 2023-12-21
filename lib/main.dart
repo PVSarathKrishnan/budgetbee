@@ -1,5 +1,8 @@
+import 'package:budgetbee/model/reminder_model.dart';
+import 'package:budgetbee/widgets/carousel_page.dart';
 import 'package:budgetbee/db/category_functions.dart';
 import 'package:budgetbee/model/category_model.dart';
+import 'package:budgetbee/screens/deletesplash.dart';
 import 'package:budgetbee/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
@@ -15,12 +18,15 @@ void main() async {
 
   // Register Hive adapters
   Hive.registerAdapter(CategoryModelAdapter());
+  Hive.registerAdapter(ReminderAdapter());
 
-  // Open necessary Hive boxes before using CategoryFunctions
+  // Open necessary Hive boxes
   await Hive.openBox('money');
   await Hive.openBox('categories');
   await Hive.openBox("expenseCategoryBox");
   await Hive.openBox("incomeCategoryBox");
+  await Hive.openBox<Reminder>(
+      "remindersBox"); // Open remindersBox with the correct type
 
   // Create an instance of CategoryFunctions and setup categories
   final categoryFunctions = CategoryFunctions();
@@ -44,7 +50,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       title: 'Budget Bee',
-      home: SplashScreen(), // Change home to SplashScreen
+      home: SplashScreen(),
+      // home: CarouselPage(),
     );
   }
 }

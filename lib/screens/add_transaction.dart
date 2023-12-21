@@ -1,5 +1,6 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/db/category_functions.dart';
+import 'package:budgetbee/screens/budget_calculator.dart';
 import 'package:budgetbee/style/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,6 +46,17 @@ class _AddTransactionState extends State<AddTransaction> {
     setState(() {}); //moved from getuser, commented it there because of error
   }
 
+  void _resetFields() {
+    setState(() {
+      amount = 0; // Reset amount to 0
+      note = ""; // Clear note
+      selectedCategory = null; // Reset selectedCategory
+      _enteredText = null;
+      _categoryTextController.clear();
+      selectedDate = DateTime.now(); // Reset selectedDate to today's date
+    });
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
@@ -74,9 +86,11 @@ class _AddTransactionState extends State<AddTransaction> {
         actions: [
           IconButton(
               onPressed: () {
-                setState(() {});
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => BudgetCalculatorPage(),
+                ));
               },
-              icon: Icon(Icons.refresh)),
+              icon: Icon(Icons.speed)),
         ],
       ),
       body: SingleChildScrollView(
@@ -104,12 +118,9 @@ class _AddTransactionState extends State<AddTransaction> {
                     selectedColor: Color.fromARGB(255, 17, 187, 23),
                     onSelected: (value) {
                       if (value) {
+                        _resetFields();
                         setState(() {
-                          amount = null;
-                          note = "";
-                          type = "Income";
-                          selectedDate = DateTime.now();
-                          selectedCategory = null;
+                          type = value ? "Income" : "Expense";
                         });
                       }
                     },
@@ -132,12 +143,9 @@ class _AddTransactionState extends State<AddTransaction> {
                     selectedColor: Color.fromARGB(255, 255, 35, 19),
                     onSelected: (value) {
                       if (value) {
+                        _resetFields(); // Reset the fields when switching to 'Expense'
                         setState(() {
-                          amount = null;
-                          note = "";
-                          type = "Expense";
-                          selectedDate = DateTime.now();
-                          selectedCategory = null;
+                          type = value ? "Expense" : "Income";
                         });
                       }
                     },
@@ -290,8 +298,7 @@ class _AddTransactionState extends State<AddTransaction> {
                       onSuggestionSelected: (String? suggestion) {
                         setState(() {
                           if (suggestion != null && suggestion.isNotEmpty) {
-                            _categoryTextController.text =
-                                suggestion; // Update the text controller
+                            _categoryTextController.text = suggestion;
                             selectedCategory = suggestion;
                             note = suggestion;
                           } else {
@@ -364,14 +371,7 @@ class _AddTransactionState extends State<AddTransaction> {
               ElevatedButton(
                 style: button_theme(),
                 onPressed: () async {
-                  if (amount != null) {
-                    if (selectedCategory != null) {
-                      note = selectedCategory!;
-                    } else if (_enteredText != null &&
-                        _enteredText!.isNotEmpty) {
-                      note = _enteredText!;
-                    }
-
+                  if (amount != null && selectedCategory != null) {
                     DbHelper dbHelper = DbHelper();
                     await dbHelper.addData(amount!, selectedDate, note, type);
 
@@ -414,11 +414,14 @@ class _AddTransactionState extends State<AddTransaction> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add a Category'),
+          title: Text('Add a Category',
+              style: text_theme_h().copyWith(color: Color(0XFF9486F7))),
           content: TextField(
             controller: _addCategoryController,
             decoration: InputDecoration(
               hintText: 'Enter Category Name',
+              hintStyle: text_theme()
+                  .copyWith(color: Color.fromARGB(255, 149, 149, 149)),
             ),
             onSubmitted: (String value) async {
               // Add the submitted category to the default list
@@ -428,16 +431,26 @@ class _AddTransactionState extends State<AddTransaction> {
           actions: [
             TextButton(
               onPressed: () {
+                _addCategoryController.clear();
                 Navigator.pop(context); // Close the dialog without adding
               },
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: text_theme().copyWith(color: Color(0XFF9486F7)),
+              ),
             ),
             TextButton(
+              style: button_theme_1().copyWith(
+                  backgroundColor: MaterialStatePropertyAll(Color(0XFF9486F7))),
               onPressed: () async {
                 // Add the category to the default list
                 await _addCategory(_addCategoryController.text, context);
+                _addCategoryController.clear();
               },
-              child: Text('Add'),
+              child: Text(
+                'Add',
+                style: text_theme_h().copyWith(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -450,14 +463,13 @@ class _AddTransactionState extends State<AddTransaction> {
       // Add the category to the default list based on the current 'type'
       await categoryFunctions.addCategoryToDefaultList(category, type);
 
-      // Clear the text field after adding the category
       _categoryTextController.clear();
 
       setState(() {
         selectedCategory = category;
       });
 
-      Navigator.pop(context); // Close the dialog after adding
+      Navigator.pop(context);
     }
   }
 

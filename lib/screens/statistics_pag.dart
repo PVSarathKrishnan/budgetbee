@@ -4,6 +4,7 @@ import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/model/transaction_modal.dart';
 import 'package:budgetbee/screens/add_transaction.dart';
 import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/widgets/show_description.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -229,7 +230,7 @@ class _StatPageState extends State<StatPage> {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return showDescription(context);
+                                  return show_description(context: context);
                                 },
                               );
                             },
@@ -287,7 +288,7 @@ class _StatPageState extends State<StatPage> {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return showDescription(context);
+                                  return show_description(context: context);
                                 },
                               );
                             },
@@ -336,53 +337,6 @@ class _StatPageState extends State<StatPage> {
           },
         ),
       ),
-    );
-  }
-
-  AlertDialog showDescription(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.white, // Change the background color here
-      title: Text('Chart Information',
-          style: text_theme_h()), // Set the text style for the title
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Horizontal Axis: Date',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color:
-                    text_theme().color), // Set the text style for the content
-          ),
-          Text(
-            'Represents the dates in the chart.',
-            style: text_theme_p().copyWith(
-                color: Color(0XFF9486F7)), // Set the text style for the content
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Vertical Axis: Amount',
-            style: text_theme(), // Set the text style for the content
-          ),
-          Text(
-            'Denotes the amount of transaction',
-            style: text_theme_p().copyWith(
-                color: Color(0XFF9486F7)), // Set the text style for the content
-          ),
-        ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text(
-            'Close',
-            style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
-          ), // Set the text style for the action
-        ),
-      ],
     );
   }
 

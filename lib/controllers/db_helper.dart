@@ -28,6 +28,8 @@ class DbHelper {
     }
   }
 
+ 
+
   Future<List<Map<dynamic, dynamic>>> fetchTransactions() async {
     if (box.isEmpty) {
       return []; // Return an empty list if no data is available
@@ -90,7 +92,8 @@ class DbHelper {
       return expenseNoteAmountMap;
     }
   }
-   Future<Map<String, double>> fetchIncomeNoteAmountMap() async {
+
+  Future<Map<String, double>> fetchIncomeNoteAmountMap() async {
     if (box.isEmpty) {
       return {}; // Return an empty map if no data is available
     } else {

@@ -2,6 +2,7 @@ import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/data/category_data.dart';
 import 'package:budgetbee/screens/welcome_screen.dart';
 import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/widgets/carousel_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -200,7 +201,7 @@ class _AddNameState extends State<AddName> {
                   // Move to HomePage
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (context) => WelcomeScreen(),
+                      builder: (context) => CarouselPage(),
                     ),
                   );
                 } else {
