@@ -99,7 +99,7 @@ class ExpenseTile extends StatelessWidget {
                     width: 30,
                   ),
                   Text(
-                    "-$value",
+                    "- ₹$value",
                     style: text_theme_color_size(Colors.red, 22),
                   ),
                 ],
@@ -138,7 +138,7 @@ class ExpenseTile extends StatelessWidget {
                 style: text_theme_color(Colors.white),
               ),
               SizedBox(height: 25),
-              _buildPlaceholder(Icons.attach_money, 'Amount', value),
+              _buildPlaceholder(Icons.currency_rupee, 'Amount', value),
               SizedBox(height: 20),
               _buildPlaceholder(Icons.description, 'Description', note),
               SizedBox(height: 20),

@@ -1,3 +1,4 @@
+import 'package:budgetbee/model/budget_calculator.dart';
 import 'package:budgetbee/model/reminder_model.dart';
 import 'package:budgetbee/widgets/carousel_page.dart';
 import 'package:budgetbee/db/category_functions.dart';
@@ -19,7 +20,7 @@ void main() async {
   // Register Hive adapters
   Hive.registerAdapter(CategoryModelAdapter());
   Hive.registerAdapter(ReminderAdapter());
-
+  Hive.registerAdapter(BudgetCalculatorAdapter()); // Register the generated adapter
   // Open necessary Hive boxes
   await Hive.openBox('money');
   await Hive.openBox('categories');

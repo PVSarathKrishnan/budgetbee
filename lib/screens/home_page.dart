@@ -16,8 +16,6 @@ import 'package:budgetbee/widgets/expensecard.dart';
 import 'package:budgetbee/widgets/expensetile.dart';
 import 'package:budgetbee/widgets/incomecard.dart';
 import 'package:budgetbee/widgets/incometile.dart';
-import 'package:budgetbee/widgets/reset_data_button.dart';
-import 'package:budgetbee/widgets/show_warning.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -187,8 +185,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) =>
-                        TutorialPage(), // Tutorial page (Incomplete)
+                    builder: (context) => TutorialPage(),
                   ));
                 },
               ),
@@ -209,7 +206,7 @@ class _HomePageState extends State<HomePage> {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      return show_warning(box: box, context: context);
+                      return showWarning(context);
                     },
                   );
                   // Logic for clearing all data and redirect to AddName page like for a anew user enrtry
@@ -219,7 +216,24 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: floating_button_home(context),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context)
+                .push(MaterialPageRoute(
+              builder: (context) => AddTransaction(),
+            ))
+                .whenComplete(() {
+              setState(() {});
+            });
+          },
+          backgroundColor: Color(0XFF9486F7),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Icon(
+            Icons.add,
+            size: 32,
+          ),
+        ),
         body: FutureBuilder<List<TransactionModal>>(
             future: fetch(),
             builder: (context, snapshot) {
@@ -359,55 +373,6 @@ class _HomePageState extends State<HomePage> {
                         ]),
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Text(
-                            "Budget Calculator - 'Item Name'",
-                            style: text_theme_h(),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                                color: Color(0XFF9486F7),
-                                borderRadius: BorderRadius.circular(60)),
-                            child: IconButton(
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => StatPage(),
-                                ));
-                              },
-                              icon: Icon(
-                                Icons.navigate_next_sharp,
-                                size: 30,
-                              ),
-                              tooltip: "Your Budget Plan",
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                    Container(
-                        height: 400,
-                        padding: EdgeInsets.all(18),
-                        margin: EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.grey.withOpacity(.4),
-                                  spreadRadius: 5,
-                                  blurRadius: 6,
-                                  offset: Offset(0, 4))
-                            ]),
-                        child: Container()),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -569,27 +534,6 @@ class _HomePageState extends State<HomePage> {
                 );
               }
             }));
-  }
-
-  FloatingActionButton floating_button_home(BuildContext context) {
-    return FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(
-            builder: (context) => AddTransaction(),
-          ))
-              .whenComplete(() {
-            setState(() {});
-          });
-        },
-        backgroundColor: Color(0XFF9486F7),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Icon(
-          Icons.add,
-          size: 32,
-        ),
-      );
   }
 
   void _showProfileModal(BuildContext context) {
@@ -784,5 +728,70 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Color.fromARGB(255, red, green, blue);
+  }
+
+  AlertDialog showWarning(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white, // Change the background color here
+      title: Text('Warning!',
+          style: text_theme_h().copyWith(
+              color: const Color.fromARGB(
+                  255, 255, 17, 0))), // Set the text style for the title
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Are you sure you want to erase all data?',
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color:
+                    text_theme().color), // Set the text style for the content
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            'This action will delete all the data permanently!',
+            style: text_theme_p().copyWith(
+                fontSize: 15,
+                color: Color.fromARGB(
+                    255, 111, 111, 111)), // Set the text style for the content
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () async {
+            // Clearing Hive boxes
+            await box.clear();
+
+            // Clearing shared preferences
+            SharedPreferences preferences =
+                await SharedPreferences.getInstance();
+            await preferences.clear();
+
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) => DeleteSplashScreen(),
+            ));
+          },
+
+          child: Text(
+            'Delete ',
+            style:
+                text_theme_h().copyWith(color: Color.fromARGB(255, 255, 0, 0)),
+          ), // Set the text style for the action
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(
+            'Close',
+            style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
+          ), // Set the text style for the action
+        ),
+      ],
+    );
   }
 }

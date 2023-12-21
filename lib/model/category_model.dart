@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'category_model.g.dart'; // Generated file
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 3)
 class CategoryModel extends HiveObject {
   @HiveField(0)
   late String name;

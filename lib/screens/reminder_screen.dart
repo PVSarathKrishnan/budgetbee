@@ -32,11 +32,6 @@ class _ReminderPageState extends State<ReminderPage> {
     _getReminders();
   }
 
-  Future<void> _openBox() async {
-    remindersBox = await Hive.openBox<Reminder>('remindersBox');
-    _getReminders();
-  }
-
   Future<void> _getReminders() async {
     setState(() {
       reminders = remindersBox.values.toList();
@@ -104,9 +99,11 @@ class _ReminderPageState extends State<ReminderPage> {
   Future<void> _editReminder(int index) async {
     final reminder = remindersBox.getAt(index);
 
-    selectedTime = TimeOfDay.fromDateTime(reminder?.date ?? DateTime.now());
-    selectedDate = reminder?.date ?? DateTime.now();
-    noteController.text = reminder?.note ?? '';
+    setState(() {
+      selectedTime = TimeOfDay.now();
+      selectedDate = reminder?.date ?? DateTime.now();
+      noteController.text = reminder?.note ?? '';
+    });
 
     await showDialog(
       context: context,
@@ -245,6 +242,7 @@ class _ReminderPageState extends State<ReminderPage> {
   }
 
   Future<void> _addReminder(BuildContext context) async {
+    noteController.clear();
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -367,7 +365,7 @@ class _ReminderPageState extends State<ReminderPage> {
                     itemBuilder: (context, index) {
                       final reminder = box.getAt(index);
                       return Card(
-                        color: Color.fromARGB(66, 254, 244, 244),
+                        color: Color.fromARGB(255, 226, 226, 226),
                         elevation: 2,
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         child: ListTile(

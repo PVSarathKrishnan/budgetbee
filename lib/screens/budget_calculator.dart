@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:budgetbee/db/category_functions.dart'; // Import your category functions
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:budgetbee/db/category_functions.dart';
+import 'package:budgetbee/model/budget_calculator.dart';
+import 'package:budgetbee/style/text_theme.dart';
 
 class BudgetCalculatorPage extends StatefulWidget {
   const BudgetCalculatorPage({Key? key}) : super(key: key);
@@ -9,26 +12,59 @@ class BudgetCalculatorPage extends StatefulWidget {
 }
 
 class _BudgetCalculatorPageState extends State<BudgetCalculatorPage> {
+  late Box<BudgetCalculator> budgetBox;
   late CategoryFunctions categoryFunctions;
-  List<String> defaultExpenseList = []; // List to hold expense categories
+  List<String> defaultExpenseList = [];
+  List<BudgetCalculator> budgetCalculators = [];
 
-  String selectedCategory = ''; // Store selected category
-  double amountLimit = 0; // Store amount limit
+  String selectedCategory = '';
+  double amountLimit = 0;
 
-  TextEditingController _addCategoryController = TextEditingController();
+  TextEditingController _amountLimitController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     categoryFunctions = CategoryFunctions();
+    openBudgetBox();
     loadCategories();
+  }
+
+  Future<void> openBudgetBox() async {
+    await Hive.openBox<BudgetCalculator>('budget_calculators');
+    budgetBox = Hive.box<BudgetCalculator>('budget_calculators');
+    loadBudgetCalculators();
+  }
+
+  Future<void> loadBudgetCalculators() async {
+    setState(() {
+      budgetCalculators = budgetBox.values.toList();
+    });
+  }
+
+  void _addBudgetCalculator() {
+    if (selectedCategory.isNotEmpty && amountLimit > 0) {
+      final newBudgetCalculator = BudgetCalculator(
+        category: selectedCategory,
+        amountLimit: amountLimit,
+      );
+
+      setState(() {
+        budgetCalculators.add(newBudgetCalculator);
+        budgetBox.add(newBudgetCalculator);
+        _amountLimitController.clear();
+      });
+    }
   }
 
   Future<void> loadCategories() async {
     await categoryFunctions.setupCategories();
     setState(() {
-      defaultExpenseList =
-          categoryFunctions.getExpenseCategories().map((e) => e.name).toList();
+      defaultExpenseList = categoryFunctions
+          .getExpenseCategories()
+          .map((e) => e.name)
+          .toSet()
+          .toList();
     });
   }
 
@@ -36,35 +72,101 @@ class _BudgetCalculatorPageState extends State<BudgetCalculatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0XFF9486F7),
         title: Text(
-          'Budget Calculator',
-          style: TextStyle(color: Colors.white),
+          "BUDGET CALCULATOR",
+          style: text_theme_h(),
         ),
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: Color(0XFF9486F7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Select Category',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      body: budgetCalculators.isEmpty
+          ? Center(child: Text('No budget calculators yet.'))
+          : ListView.builder(
+              itemCount: budgetCalculators.length,
+              itemBuilder: (context, index) {
+                final calculator = budgetCalculators[index];
+                return Card(
+                  color: Color.fromARGB(255, 226, 226, 226),
+                  elevation: 4,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      onTap: () {
+                        _showSpentAmountBottomSheet(context, calculator);
+                      },
+                      title:
+                          Text('${calculator.category}', style: text_theme_h()),
+                      subtitle: Text(
+                          'Limit: \$${calculator.amountLimit.toStringAsFixed(2)}',
+                          style: text_theme()),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.edit,
+                              color: Colors.blue,
+                            ),
+                            onPressed: () {
+                              _editBudgetCalculator(context, index);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                budgetCalculators.removeAt(index);
+                                budgetBox.deleteAt(index);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-            SizedBox(height: 10),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Color(0XFF9486F7).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: DropdownButton<String>(
+      floatingActionButton: FloatingActionButton(
+        tooltip: "Add a new one",
+        backgroundColor: Color(0XFF9486F7),
+        onPressed: () {
+          _showAddBudgetCalculatorDialog(context);
+        },
+        child: Icon(Icons.add),
+        elevation: 2,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Future<void> _showAddBudgetCalculatorDialog(BuildContext context) async {
+    selectedCategory =
+        defaultExpenseList.isNotEmpty ? defaultExpenseList[0] : '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Add Budget Calculator',
+            style: text_theme_h(),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Select Category',
+                  style: text_theme_h()
+                      .copyWith(color: Color(0XFF9486F7), fontSize: 16)),
+              DropdownButton<String>(
                 value: selectedCategory,
-                hint: Text('Select Category'),
-                isExpanded: true,
                 onChanged: (newValue) {
                   setState(() {
                     selectedCategory = newValue!;
@@ -77,20 +179,12 @@ class _BudgetCalculatorPageState extends State<BudgetCalculatorPage> {
                   );
                 }).toList(),
               ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Enter Amount Limit',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Color(0XFF9486F7).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: TextField(
+              SizedBox(height: 10),
+              Text('Enter Amount Limit',
+                  style: text_theme_h()
+                      .copyWith(color: Color(0XFF9486F7), fontSize: 16)),
+              TextField(
+                controller: _amountLimitController,
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   setState(() {
@@ -98,69 +192,31 @@ class _BudgetCalculatorPageState extends State<BudgetCalculatorPage> {
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Enter Amount',
-                  border: InputBorder.none,
-                ),
+                    hintText: 'Enter Amount', hintStyle: text_theme()),
               ),
-            ),
-            SizedBox(height: 40),
-            Text(
-              'Spending Progress',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            LinearProgressIndicator(
-              value: 0.5, // Replace with your spending percentage
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0XFF9486F7)),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddCategoryDialog(context);
-        },
-        child: Icon(Icons.add),
-        backgroundColor: Color(0XFF9486F7),
-      ),
-    );
-  }
-
-  void _showAddCategoryDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Add a Category',
-            style: TextStyle(color: Color(0XFF9486F7)),
-          ),
-          content: TextField(
-            controller: _addCategoryController,
-            decoration: InputDecoration(
-              hintText: 'Enter Category Name',
-            ),
-            onSubmitted: (String value) async {
-              await _addCategory(value, context);
-            },
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () {
-                _addCategoryController.clear();
                 Navigator.pop(context);
               },
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: text_theme_h()
+                    .copyWith(color: Color(0XFF9486F7), fontSize: 16),
+              ),
             ),
             ElevatedButton(
-              onPressed: () async {
-                await _addCategory(_addCategoryController.text, context);
-                _addCategoryController.clear();
+              style: ButtonStyle(
+                  backgroundColor: MaterialStatePropertyAll(Color(0XFF9486F7))),
+              onPressed: () {
+                _addBudgetCalculator();
+                Navigator.pop(context);
               },
-              child: Text('Add'),
-              style: ElevatedButton.styleFrom(
-                primary: Color(0XFF9486F7),
+              child: Text(
+                'Add',
+                style: text_theme_h(),
               ),
             ),
           ],
@@ -169,11 +225,120 @@ class _BudgetCalculatorPageState extends State<BudgetCalculatorPage> {
     );
   }
 
-  Future<void> _addCategory(String category, BuildContext context) async {
-    if (category.isNotEmpty) {
-      await categoryFunctions.addCategoryToDefaultList(category, 'Expense');
-      loadCategories(); // Reload categories after adding a new one
-      Navigator.pop(context);
-    }
+  void _editBudgetCalculator(BuildContext context, int index) async {
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String newCategory = budgetCalculators[index].category;
+        double newAmountLimit = budgetCalculators[index].amountLimit;
+
+        return AlertDialog(
+          title: Text('Edit Budget Calculator', style: text_theme_h()),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: InputDecoration(
+                    labelText: 'Category', labelStyle: text_theme()),
+                onChanged: (value) {
+                  newCategory = value;
+                },
+                controller: TextEditingController(text: newCategory),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                decoration: InputDecoration(
+                    labelText: 'Amount Limit', labelStyle: text_theme()),
+                onChanged: (value) {
+                  newAmountLimit = double.tryParse(value) ?? 0;
+                },
+                controller:
+                    TextEditingController(text: newAmountLimit.toString()),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, null);
+              },
+              child: Text(
+                'Cancel',
+                style: text_theme_h()
+                    .copyWith(color: Color(0XFF9486F7), fontSize: 16),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                final updatedCalculator = BudgetCalculator(
+                  category: newCategory,
+                  amountLimit: newAmountLimit,
+                );
+                setState(() {
+                  budgetCalculators[index] = updatedCalculator;
+                  budgetBox.putAt(index, updatedCalculator);
+                });
+                Navigator.pop(context, updatedCalculator);
+              },
+              child: Text(
+                'Save',
+                style: text_theme_h()
+                    .copyWith(color: Color(0XFF9486F7), fontSize: 18),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSpentAmountBottomSheet(
+      BuildContext context, BudgetCalculator calculator) {
+    double spentAmount =
+        100.0; // Replace this with your logic to calculate the spent amount
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Spent Amount',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Category: ${calculator.category}',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 5),
+              Text(
+                'Amount Limit: \$${calculator.amountLimit.toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 5),
+              Text(
+                'Amount Spent: \$${spentAmount.toStringAsFixed(2)}', // Display the calculated spent amount here
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Close'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
