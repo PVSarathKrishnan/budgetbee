@@ -2,7 +2,6 @@ import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/screens/add_transaction.dart';
 import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:budgetbee/widgets/edit_income.dart';
-import 'package:budgetbee/widgets/edit_transaction_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:glassmorphism_ui/glassmorphism_ui.dart';
