@@ -1,5 +1,5 @@
 import 'package:budgetbee/screens/welcome_screen.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 
 class CarouselPage extends StatefulWidget {

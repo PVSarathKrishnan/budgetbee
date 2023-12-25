@@ -1,5 +1,6 @@
 import 'package:budgetbee/data/category_data.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/screens/home_page.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -79,7 +80,7 @@ class _EditProfileState extends State<EditProfile> {
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 ),
-                style: text_theme_h(), // Apply font style here
+                style: text_theme_h(),
               ),
               SizedBox(height: 30.0),
               DropdownButtonFormField<String>(
@@ -148,9 +149,27 @@ class _EditProfileState extends State<EditProfile> {
                 onPressed: () {
                   _saveProfileData();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Profile updated')),
+                    SnackBar(
+                      content: Text(
+                        'Profile updated',
+                        style: text_theme_h(),
+                        textAlign: TextAlign.center,
+                      ),
+                      backgroundColor: Color(0XFF9486F7),
+                      duration: Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      margin: EdgeInsets.all(16.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
                   );
-                  Navigator.of(context).pop();
+
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => HomePage(),
+                      ),
+                      (route) => false);
                 },
                 child: Text(
                   'Save Changes',

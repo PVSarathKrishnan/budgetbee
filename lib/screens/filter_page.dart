@@ -1,7 +1,7 @@
 import 'package:budgetbee/controllers/db_helper.dart';
-import 'package:budgetbee/style/text_theme.dart';
-import 'package:budgetbee/widgets/expensetile.dart';
-import 'package:budgetbee/widgets/incometile.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
+import 'package:budgetbee/widgets/expense_tile.dart';
+import 'package:budgetbee/widgets/income_tile.dart';
 import 'package:flutter/material.dart';
 
 class FilterPage extends StatefulWidget {
@@ -16,7 +16,7 @@ class _FilterPageState extends State<FilterPage> {
   bool sortAscending = true;
   late List<Map<dynamic, dynamic>> transactions = [];
   late List<Map<dynamic, dynamic>> allTransactions = [];
-  String currentFilter = 'TRANSACTION HISTORY';
+  String currentFilter = 'FILTER';
   String selectedDuration = '';
 
   @override

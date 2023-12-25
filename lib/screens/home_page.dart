@@ -1,21 +1,24 @@
 import 'dart:math';
-
 import 'package:budgetbee/controllers/db_helper.dart';
+import 'package:budgetbee/db/budget_calculator_functions.dart';
+import 'package:budgetbee/model/budget_calculator.dart';
+import 'package:budgetbee/model/reminder_model.dart';
 import 'package:budgetbee/model/transaction_modal.dart';
-import 'package:budgetbee/model/usermodel.dart';
 import 'package:budgetbee/screens/bnb_mainpage.dart';
 import 'package:budgetbee/screens/about_screen.dart';
 import 'package:budgetbee/screens/add_transaction.dart';
+import 'package:budgetbee/screens/budget_calculator_page.dart';
 import 'package:budgetbee/screens/deletesplash.dart';
 import 'package:budgetbee/screens/edit_profile_page.dart';
 import 'package:budgetbee/screens/reminder_screen.dart';
-import 'package:budgetbee/screens/statistics_pag.dart';
+import 'package:budgetbee/screens/statistics_page.dart';
 import 'package:budgetbee/screens/tutorial_page.dart';
-import 'package:budgetbee/style/text_theme.dart';
-import 'package:budgetbee/widgets/expensecard.dart';
-import 'package:budgetbee/widgets/expensetile.dart';
-import 'package:budgetbee/widgets/incomecard.dart';
-import 'package:budgetbee/widgets/incometile.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
+import 'package:budgetbee/widgets/expense_card.dart';
+import 'package:budgetbee/widgets/expense_income_widget.dart';
+import 'package:budgetbee/widgets/expense_tile.dart';
+import 'package:budgetbee/widgets/income_card.dart';
+import 'package:budgetbee/widgets/income_tile.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -39,7 +42,6 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String userEmail = "";
-  UserModel? currentUser;
   late SharedPreferences preferences;
   late Box box;
   bool sortAscending = true;
@@ -48,13 +50,27 @@ class _HomePageState extends State<HomePage> {
   int totalBalance = 0;
   int totalIncome = 0;
   int totalExpense = 0;
+  double expenseToIncomeRatio = 0;
   List<FlSpot> dataSet = [];
+  BudgetCalculatorFunctions budgetCalculatorFunctions =
+      BudgetCalculatorFunctions();
+  List<BudgetCalculator> budgetCalculators = [];
+  List<TransactionModal> transactions = [];
+
+  void initState() {
+    super.initState();
+    getPreference();
+    box = Hive.box("money");
+    getBudgetCalculators();
+    fetchTransactions();
+  }
 
   getTotalBalance(List<TransactionModal> entireData) {
     // For the card in Home page
     totalBalance = 0;
     totalIncome = 0;
     totalExpense = 0;
+
     for (TransactionModal data in entireData) {
       if (data.type == "Income") {
         totalBalance += data.amount;
@@ -63,6 +79,52 @@ class _HomePageState extends State<HomePage> {
         totalBalance -= data.amount;
         totalExpense += data.amount;
       }
+      expenseToIncomeRatio = (totalExpense / totalIncome);
+    }
+  }
+
+  Future<void> fetchTransactions() async {
+    // Fetch transactions from the database
+
+    List<TransactionModal> fetchedTransactions =
+        await dbHelper.fetchTransactionData();
+    setState(() {
+      transactions = fetchedTransactions;
+    });
+  }
+
+  Future<void> getBudgetCalculators() async {
+    try {
+      List<BudgetCalculator> fetchedCalculators =
+          await budgetCalculatorFunctions.fetchBudgetCalculators();
+      setState(() {
+        budgetCalculators = fetchedCalculators;
+      });
+    } catch (e) {}
+  }
+
+// Deletion function
+  Future<void> deleteTransaction(
+      BuildContext context, TransactionModal transaction) async {
+    try {
+      // Perform the deletion
+      DbHelper dbHelper = DbHelper();
+      await dbHelper.deleteTransaction(
+        transaction.amount,
+        transaction.date,
+        transaction.note,
+      );
+
+      await fetchTransactions();
+
+      getTotalBalance(transactions);
+
+      setState(() {});
+
+      print('Transaction deleted');
+    } catch (e) {
+      print('Error deleting transaction: $e');
+      // Handle deletion errors here
     }
   }
 
@@ -179,8 +241,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(
                       width: 5,
                     ),
-                    Text('Get Help',
-                        style: text_theme()), // Tutorial page (Incomplete)
+                    Text('Get Help', style: text_theme()),
                   ],
                 ),
                 onTap: () {
@@ -209,7 +270,6 @@ class _HomePageState extends State<HomePage> {
                       return showWarning(context);
                     },
                   );
-                  // Logic for clearing all data and redirect to AddName page like for a anew user enrtry
                 },
               ),
             ],
@@ -234,306 +294,399 @@ class _HomePageState extends State<HomePage> {
             size: 32,
           ),
         ),
-        body: FutureBuilder<List<TransactionModal>>(
-            future: fetch(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                //if any error occured
-                return Center(
-                  child: Text("Unexpected Error"),
-                );
-              }
-              if (snapshot.hasData) {
-                if (snapshot.data!.isEmpty) {
-                  return SingleChildScrollView(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 150),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Container(
-                            width: 250,
-                            child: Column(
-                              children: [
-                                Text(
-                                  '"Know what you own, and know why you own it"',
-                                  style: text_theme_p(),
-                                  textAlign: TextAlign.center,
+        body: RefreshIndicator(
+            color: Color(0XFF9486F7),
+            backgroundColor: Colors.white,
+            displacement: 50,
+            strokeWidth: 3,
+            triggerMode: RefreshIndicatorTriggerMode.onEdge,
+            onRefresh: () async {
+              await fetchTransactions();
+              setState(() {});
+            },
+            child: FutureBuilder<List<TransactionModal>>(
+                future: fetch(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    //if any error occured
+                    return Center(
+                      child: Text("Unexpected Error"),
+                    );
+                  }
+                  if (snapshot.hasData) {
+                    if (snapshot.data!.isEmpty) {
+                      return SingleChildScrollView(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 150),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Container(
+                                width: 250,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '"Know what you own, and know why you own it"',
+                                      style: text_theme_p(),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      "- Peter Lynch -",
+                                      style: text_theme_p()
+                                          .copyWith(letterSpacing: 3),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(
-                                  height: 5,
+                              ),
+                              SizedBox(
+                                height: 15,
+                              ),
+                              Text(
+                                "Hello ${preferences.getString("name")}",
+                                style: text_theme_h(),
+                              ),
+                              Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Container()),
+                              Lottie.asset("lib/assets/nodata.json",
+                                  height: 100, width: 180),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Text(
+                                "No values Found,Try Adding Income first.",
+                                style: text_theme_p(),
+                              ),
+                              Container(
+                                height: 190,
+                                width: 200,
+                                child: Column(
+                                  children: [
+                                    SizedBox(height: 30),
+                                    Container(
+                                      height: 100,
+                                      width: 100,
+                                      child: Image(
+                                          image: AssetImage(
+                                              "lib/assets/Logo.png")),
+                                    ),
+                                    SizedBox(height: 10),
+                                  ],
                                 ),
-                                Text(
-                                  "- Peter Lynch -",
-                                  style:
-                                      text_theme_p().copyWith(letterSpacing: 3),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            height: 15,
-                          ),
-                          Text(
-                            "Hello ${preferences.getString("name")}",
-                            style: text_theme_h(),
-                          ),
-                          Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container()),
-                          Lottie.asset("lib/assets/nodata.json",
-                              height: 100, width: 180),
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Text(
-                            "No values Found,Try Adding Income first.",
-                            style: text_theme_p(),
-                          ),
-                          Container(
-                            height: 190,
-                            width: 200,
-                            child: Column(
-                              children: [
-                                SizedBox(height: 30),
-                                Container(
-                                  height: 100,
-                                  width: 100,
-                                  child: Image(
-                                      image: AssetImage("lib/assets/Logo.png")),
-                                ),
-                                SizedBox(height: 10),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                getTotalBalance(snapshot.data!);
-
-                return ListView(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          right: 18, bottom: 18, left: 18),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: []),
-                    ),
-                    Container(
-                      width: MediaQuery.of(context).size.width * .8,
-                      margin: EdgeInsets.all(12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 2,
-                                blurRadius: 4,
-                                offset: Offset(0, 3),
-                              )
+                              ),
                             ],
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(colors: [
-                              Color.fromARGB(255, 162, 151, 248),
-                              Color.fromARGB(255, 164, 152, 250),
-                              Color.fromARGB(255, 150, 137, 253),
-                              Color.fromARGB(255, 164, 152, 250),
-                              Color.fromARGB(255, 162, 151, 248),
-                            ])),
-                        padding: EdgeInsets.all(12),
-                        child: Column(children: [
-                          Text(
-                            "Available Balance",
-                            style: text_theme_h(),
-                          ),
-                          Text(
-                            "${totalBalance}",
-                            style: text_theme_h(),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                cardIncome(value: "${totalIncome}"),
-                                SizedBox(
-                                  width: 50,
-                                ),
-                                cardEpense(value: "${totalExpense}")
-                              ],
-                            ),
-                          ),
-                        ]),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Text(
-                            "Expense Tracker - ${DateFormat('MMMM').format(DateTime.now())}",
-                            style: text_theme_h(),
                           ),
                         ),
+                      );
+                    }
+                    getTotalBalance(snapshot.data!);
+
+                    return ListView(
+                      children: [
                         Padding(
-                          padding: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.only(
+                              right: 18, bottom: 18, left: 18),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: []),
+                        ),
+                        Container(
+                          width: MediaQuery.of(context).size.width * .8,
+                          margin: EdgeInsets.all(12),
                           child: Container(
-                            height: 45,
-                            width: 45,
                             decoration: BoxDecoration(
-                                color: Color(0XFF9486F7),
-                                borderRadius: BorderRadius.circular(60)),
-                            child: IconButton(
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => StatPage(),
-                                ));
-                              },
-                              icon: Icon(
-                                Icons.navigate_next_sharp,
-                                size: 30,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 2,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 3),
+                                  )
+                                ],
+                                borderRadius: BorderRadius.circular(20),
+                                gradient: LinearGradient(colors: [
+                                  Color.fromARGB(255, 162, 151, 248),
+                                  Color.fromARGB(255, 164, 152, 250),
+                                  Color.fromARGB(255, 150, 137, 253),
+                                  Color.fromARGB(255, 164, 152, 250),
+                                  Color.fromARGB(255, 162, 151, 248),
+                                ])),
+                            padding: EdgeInsets.all(12),
+                            child: Column(children: [
+                              Text(
+                                "Available Balance",
+                                style: text_theme_h(),
                               ),
-                              tooltip: "Explore more Statistics",
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                    Container(
-                      height: 400,
-                      padding: EdgeInsets.all(18),
-                      margin: EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.grey.withOpacity(.4),
-                                spreadRadius: 5,
-                                blurRadius: 6,
-                                offset: Offset(0, 4))
-                          ]),
-                      child: FutureBuilder<List<PieChartSectionData>>(
-                          future: getDataForPieChart(snapshot.data!),
-                          builder: (context, pieSnapshot) {
-                            if (pieSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            } else if (pieSnapshot.hasError) {
-                              return Center(child: Text('Error loading data'));
-                            } else if (pieSnapshot.hasData) {
-                              if (pieSnapshot.data!.isEmpty) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 200,
-                                        child: Text(
-                                          'Add expenses to see the pie chart.',
-                                          style: text_theme_h().copyWith(
-                                              color: Color(0XFF9486F7)),
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Lottie.asset(
-                                        "lib/assets/nodatachart.json",
-                                        height: 100,
-                                        width: 180,
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                              return Padding(
-                                  padding: const EdgeInsets.all(28.0),
-                                  child: PieChart(PieChartData(
-                                    sections: pieSnapshot.data!,
-                                    sectionsSpace:
-                                        1, // Adjust the space between sections as needed
-                                    centerSpaceRadius: MediaQuery.of(context)
-                                            .size
-                                            .width *
-                                        0.25, // Adjust the center hole radius
-                                  )));
-                            } else {
-                              return Center(child: Text('No data available'));
-                            }
-                          }),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Recent Transactions",
-                            style: text_theme_h(),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12.0),
-                            child: Container(
-                              height: 45,
-                              width: 45,
-                              decoration: BoxDecoration(
-                                  color: Color(0XFF9486F7),
-                                  borderRadius: BorderRadius.circular(60)),
-                              child: IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => MainTransactionPage(),
-                                  ));
-                                },
-                                icon: Icon(
-                                  Icons.navigate_next_sharp,
-                                  size: 30,
+                              Text(
+                                "₹ ${totalBalance}",
+                                style: text_theme_h(),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    cardIncome(value: "₹ ${totalIncome}"),
+                                    SizedBox(
+                                      width: 50,
+                                    ),
+                                    cardEpense(value: "₹ ${totalExpense}")
+                                  ],
                                 ),
-                                tooltip: "View full transaction history",
+                              ),
+                            ]),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(
+                                "Expense Tracker - ${DateFormat('MMMM').format(DateTime.now())}",
+                                style: text_theme_h(),
                               ),
                             ),
-                          )
-                        ],
-                      ),
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.length > 5
-                          ? 5
-                          : snapshot.data!
-                              .length, // Show up to 5 items or less if available
-                      itemBuilder: (context, index) {
-                        TransactionModal dataAtIndex =
-                            snapshot.data![snapshot.data!.length - index - 1];
-                        if (dataAtIndex.type == "Income") {
-                          return IncomeTile(
-                              value: dataAtIndex.amount,
-                              note: dataAtIndex.note,
-                              date: dataAtIndex.date);
-                        } else {
-                          return ExpenseTile(
-                              value: dataAtIndex.amount,
-                              note: dataAtIndex.note,
-                              date: dataAtIndex.date);
-                        }
-                      },
-                    )
-                  ],
-                );
-              } else {
-                return Center(
-                  child: Text("Unexpected Error"),
-                );
-              }
-            }));
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: Container(
+                                height: 45,
+                                width: 45,
+                                decoration: BoxDecoration(
+                                    color: Color(0XFF9486F7),
+                                    borderRadius: BorderRadius.circular(60)),
+                                child: IconButton(
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                      builder: (context) => StatPage(
+                                        totalBalance: totalBalance,
+                                        totalIncome: totalIncome,
+                                        totalExpense: totalExpense,
+                                      ),
+                                    ));
+                                  },
+                                  icon: Icon(
+                                    Icons.navigate_next_sharp,
+                                    size: 30,
+                                  ),
+                                  tooltip: "Explore more Statistics",
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                        Container(
+                          height: 400,
+                          padding: EdgeInsets.all(18),
+                          margin: EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.withOpacity(.4),
+                                    spreadRadius: 5,
+                                    blurRadius: 6,
+                                    offset: Offset(0, 4))
+                              ]),
+                          child: FutureBuilder<List<PieChartSectionData>>(
+                              future: getDataForPieChart(snapshot.data!),
+                              builder: (context, pieSnapshot) {
+                                if (pieSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
+                                } else if (pieSnapshot.hasError) {
+                                  return Center(
+                                      child: Text('Error loading data'));
+                                } else if (pieSnapshot.hasData) {
+                                  if (pieSnapshot.data!.isEmpty) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            width: 200,
+                                            child: Text(
+                                              'Add expenses to see the pie chart.',
+                                              style: text_theme_h().copyWith(
+                                                  color: Color(0XFF9486F7)),
+                                            ),
+                                          ),
+                                          SizedBox(height: 10),
+                                          Lottie.asset(
+                                            "lib/assets/nodatachart.json",
+                                            height: 100,
+                                            width: 180,
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                  return Padding(
+                                      padding: const EdgeInsets.all(28.0),
+                                      child: PieChart(PieChartData(
+                                        sections: pieSnapshot.data!,
+                                        sectionsSpace:
+                                            1, // Adjust the space between sections as needed
+                                        centerSpaceRadius: MediaQuery.of(
+                                                    context)
+                                                .size
+                                                .width *
+                                            0.25, // Adjust the center hole radius
+                                      )));
+                                } else {
+                                  return Center(
+                                      child: Text('No data available'));
+                                }
+                              }),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Recent Transactions",
+                                style: text_theme_h(),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12.0),
+                                child: Container(
+                                  height: 45,
+                                  width: 45,
+                                  decoration: BoxDecoration(
+                                      color: Color(0XFF9486F7),
+                                      borderRadius: BorderRadius.circular(60)),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .push(MaterialPageRoute(
+                                        builder: (context) =>
+                                            MainTransactionPage(),
+                                      ));
+                                    },
+                                    icon: Icon(
+                                      Icons.navigate_next_sharp,
+                                      size: 30,
+                                    ),
+                                    tooltip: "View full transaction history",
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: snapshot.data!.length > 5
+                              ? 5
+                              : snapshot.data!
+                                  .length, // Show up to 5 items or less if available
+                          itemBuilder: (context, index) {
+                            TransactionModal dataAtIndex = snapshot
+                                .data![snapshot.data!.length - index - 1];
+                            if (dataAtIndex.type == "Income") {
+                              return IncomeTile(
+                                  value: dataAtIndex.amount,
+                                  note: dataAtIndex.note,
+                                  date: dataAtIndex.date);
+                            } else {
+                              return ExpenseTile(
+                                value: dataAtIndex.amount,
+                                note: dataAtIndex.note,
+                                date: dataAtIndex.date,
+                              );
+                            }
+                          },
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Your Budget Plans",
+                                style: text_theme_h(),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Container(
+                                  height: 45,
+                                  width: 45,
+                                  decoration: BoxDecoration(
+                                      color: Color(0XFF9486F7),
+                                      borderRadius: BorderRadius.circular(60)),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .push(MaterialPageRoute(
+                                        builder: (context) =>
+                                            BudgetCalculatorPage(),
+                                      ));
+                                    },
+                                    icon: Icon(
+                                      Icons.navigate_next_sharp,
+                                      size: 30,
+                                    ),
+                                    tooltip: "Explore more Statistics",
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              height: 420,
+                              padding: EdgeInsets.all(18),
+                              margin: EdgeInsets.all(15),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(.4),
+                                    spreadRadius: 5,
+                                    blurRadius: 6,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                  child: ExpenseIncomeRatioWidget(
+                                      expenseToIncomeRatio:
+                                          expenseToIncomeRatio)),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          height: 40,
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Center(
+                      child: Text("Unexpected Error"),
+                    );
+                  }
+                })));
   }
 
   void _showProfileModal(BuildContext context) {
@@ -660,7 +813,7 @@ class _HomePageState extends State<HomePage> {
     Uri url = Uri.parse(
         'https://www.freeprivacypolicy.com/live/ea5aba8f-705f-48cc-83f8-261ff8d2690f');
     if (await launchUrl(url)) {
-      //dialer opened
+      //browser opened
     } else {
       SnackBar(content: Text("couldn't launch the page"));
     }
@@ -680,26 +833,19 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void initState() {
-    super.initState();
-    getPreference();
-    box = Hive.box("money");
-    setState(() {});
-  }
-
   Future<List<PieChartSectionData>> getDataForPieChart(
       List<TransactionModal> transactionData) async {
     // Fetching expense data
     Map<String, double> expenseNoteAmountMap =
         await dbHelper.fetchExpenseNoteAmountMap();
 
-    // Process the fetched map data to create PieChartSectionData list
+    // Process the fetched map
     List<PieChartSectionData> pieChartData =
         expenseNoteAmountMap.entries.map((entry) {
       return PieChartSectionData(
         value: entry.value,
         title: entry.key,
-        titleStyle: text_theme(),
+        titleStyle: text_theme_h(),
         color: getRandomColor(),
       );
     }).toList();
@@ -718,13 +864,11 @@ class _HomePageState extends State<HomePage> {
     // Calculate color brightness using perceived luminance
     double colorBrightness = (red * 0.299 + green * 0.587 + blue * 0.114);
 
-    // Define brightness thresholds for text readability
-    double darkThreshold = 100.0; // Adjust this threshold as needed
-    double lightThreshold = 200.0; // Adjust this threshold as needed
-
-    // Check if the color is too light or too dark
+    // Define brightness for text readability
+    double darkThreshold = 100.0;
+    double lightThreshold = 200.0;
     if (colorBrightness < darkThreshold || colorBrightness > lightThreshold) {
-      return getRandomColor(); // Recursively generate another color
+      return getRandomColor();
     }
 
     return Color.fromARGB(255, red, green, blue);
@@ -732,11 +876,10 @@ class _HomePageState extends State<HomePage> {
 
   AlertDialog showWarning(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.white, // Change the background color here
+      backgroundColor: Colors.white,
       title: Text('Warning!',
-          style: text_theme_h().copyWith(
-              color: const Color.fromARGB(
-                  255, 255, 17, 0))), // Set the text style for the title
+          style: text_theme_h()
+              .copyWith(color: const Color.fromARGB(255, 255, 17, 0))),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -744,9 +887,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             'Are you sure you want to erase all data?',
             style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color:
-                    text_theme().color), // Set the text style for the content
+                fontWeight: FontWeight.bold, color: text_theme().color),
           ),
           SizedBox(
             height: 10,
@@ -754,9 +895,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             'This action will delete all the data permanently!',
             style: text_theme_p().copyWith(
-                fontSize: 15,
-                color: Color.fromARGB(
-                    255, 111, 111, 111)), // Set the text style for the content
+                fontSize: 15, color: Color.fromARGB(255, 111, 111, 111)),
           ),
         ],
       ),
@@ -764,7 +903,13 @@ class _HomePageState extends State<HomePage> {
         TextButton(
           onPressed: () async {
             // Clearing Hive boxes
-            await box.clear();
+            await Hive.box('money').clear();
+            await Hive.box('categories').clear();
+            await Hive.box("expenseCategoryBox").clear();
+            await Hive.box("incomeCategoryBox").clear();
+            await Hive.box<BudgetCalculator>('budget_calculators').clear();
+            await Hive.box('budgetCalculatorBox').clear();
+            await Hive.box<Reminder>('remindersbox').clear();
 
             // Clearing shared preferences
             SharedPreferences preferences =
@@ -775,12 +920,11 @@ class _HomePageState extends State<HomePage> {
               builder: (context) => DeleteSplashScreen(),
             ));
           },
-
           child: Text(
             'Delete ',
             style:
                 text_theme_h().copyWith(color: Color.fromARGB(255, 255, 0, 0)),
-          ), // Set the text style for the action
+          ),
         ),
         TextButton(
           onPressed: () {
@@ -789,7 +933,7 @@ class _HomePageState extends State<HomePage> {
           child: Text(
             'Close',
             style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
-          ), // Set the text style for the action
+          ),
         ),
       ],
     );

@@ -1,7 +1,7 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/screens/add_name.dart';
 import 'package:budgetbee/screens/welcome_screen.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

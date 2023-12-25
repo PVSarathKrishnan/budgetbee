@@ -14,6 +14,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   late SharedPreferences preferences;
 
+  // Function to fetch SharedPreferences
   Future<SharedPreferences> getPreferences() async {
     return await SharedPreferences.getInstance();
   }
@@ -21,35 +22,40 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Navigating to HomePage after 3 seconds delay
     Future.delayed(Duration(seconds: 3), () {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(),
-          ));
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<SharedPreferences>(
-      future: getPreferences(),
+      future: getPreferences(), // Getting SharedPreferences asynchronously
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          // While waiting for SharedPreferences, show a loading indicator
           return Scaffold(
             body: Center(
-              child:
-                  CircularProgressIndicator(), // Show a loading indicator while waiting for SharedPreferences
+              child: CircularProgressIndicator(),
             ),
           );
         } else if (snapshot.hasError) {
+          // Show error message if there's an error fetching SharedPreferences
           return Scaffold(
             body: Center(
               child: Text('Error: ${snapshot.error}'),
             ),
           );
         } else {
-          preferences = snapshot.data!;
+          // When SharedPreferences are available, proceed with UI
+          preferences = snapshot.data!; // Assign SharedPreferences data
+
           return Scaffold(
             body: Container(
               decoration: BoxDecoration(
@@ -83,7 +89,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         children: [
                           SizedBox(height: 20),
                           Text(
-                            'Hello ${preferences.getString('name')}',
+                            'Hello ${preferences.getString('name')}', // Display user's name from SharedPreferences
                             style: GoogleFonts.dancingScript(
                               fontSize: 33,
                               fontWeight: FontWeight.bold,
@@ -94,7 +100,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             child: Column(
                               children: [
                                 Lottie.asset(
-                                  'lib/assets/Loading.json',
+                                  'lib/assets/Loading.json', // Display a Lottie animation
                                   height: 100,
                                   width: 180,
                                 ),

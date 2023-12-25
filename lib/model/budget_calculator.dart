@@ -8,7 +8,14 @@ class BudgetCalculator extends HiveObject {
   late String category;
 
   @HiveField(1)
-  late double amountLimit;
+  late double amountLimit; // Changed the type to double
 
-  BudgetCalculator({required this.category, required this.amountLimit});
+  @HiveField(2)
+  late double usedAmount; // Changed the type to double
+
+  BudgetCalculator({
+    required this.category,
+    required this.amountLimit,
+    this.usedAmount = 0,
+  });
 }

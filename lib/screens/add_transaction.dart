@@ -1,7 +1,8 @@
 import 'package:budgetbee/controllers/db_helper.dart';
+import 'package:budgetbee/db/budget_calculator_functions.dart';
 import 'package:budgetbee/db/category_functions.dart';
-import 'package:budgetbee/screens/budget_calculator.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/screens/budget_calculator_page.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -16,6 +17,7 @@ class AddTransaction extends StatefulWidget {
   State<AddTransaction> createState() => _AddTransactionState();
 }
 
+BudgetCalculatorFunctions budgetFunctions = BudgetCalculatorFunctions();
 TextEditingController _addCategoryController = TextEditingController();
 TextEditingController _categoryTextController = TextEditingController();
 late CategoryFunctions categoryFunctions;
@@ -72,7 +74,7 @@ class _AddTransactionState extends State<AddTransaction> {
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          actions: [
+        actions: [
           IconButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
@@ -234,7 +236,7 @@ class _AddTransactionState extends State<AddTransaction> {
                           controller: _categoryTextController,
                           onChanged: (text) {
                             _enteredText = text;
-                            print("entered text : $_enteredText");
+                         
                           },
                           decoration: InputDecoration(
                             hintText: 'Search Category',
@@ -376,7 +378,12 @@ class _AddTransactionState extends State<AddTransaction> {
                     }
 
                     DbHelper dbHelper = DbHelper();
-                    await dbHelper.addData(amount!, selectedDate, note, type);
+                    await dbHelper.addData(
+                      amount!,
+                      selectedDate,
+                      note,
+                      type,
+                    );
 
                     setState(() {
                       amount = null;
@@ -466,14 +473,13 @@ class _AddTransactionState extends State<AddTransaction> {
       // Add the category to the default list based on the current 'type'
       await categoryFunctions.addCategoryToDefaultList(category, type);
 
-     
       _categoryTextController.clear();
 
       setState(() {
         selectedCategory = category;
       });
 
-      Navigator.pop(context); 
+      Navigator.pop(context);
     }
   }
 

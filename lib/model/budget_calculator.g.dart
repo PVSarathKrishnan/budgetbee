@@ -19,17 +19,20 @@ class BudgetCalculatorAdapter extends TypeAdapter<BudgetCalculator> {
     return BudgetCalculator(
       category: fields[0] as String,
       amountLimit: fields[1] as double,
+      usedAmount: fields[2] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, BudgetCalculator obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.category)
       ..writeByte(1)
-      ..write(obj.amountLimit);
+      ..write(obj.amountLimit)
+      ..writeByte(2)
+      ..write(obj.usedAmount);
   }
 
   @override

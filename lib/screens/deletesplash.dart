@@ -1,5 +1,5 @@
 import 'package:budgetbee/screens/splash_screen.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:lottie/lottie.dart';

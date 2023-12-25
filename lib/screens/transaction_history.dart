@@ -1,7 +1,8 @@
 import 'package:budgetbee/controllers/db_helper.dart';
-import 'package:budgetbee/style/text_theme.dart';
-import 'package:budgetbee/widgets/expensetile.dart';
-import 'package:budgetbee/widgets/incometile.dart';
+import 'package:budgetbee/screens/filter_page.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
+import 'package:budgetbee/widgets/expense_tile.dart';
+import 'package:budgetbee/widgets/income_tile.dart';
 import 'package:flutter/material.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
@@ -111,7 +112,23 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       icon: Icon(Icons.swap_vert),
                     ),
                   ),
-                 
+                  SizedBox(width: 10),
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Color(0XFF9486F7).withOpacity(.4),
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (context) => FilterPage(),
+                        ));
+                      },
+                      icon: Icon(Icons.filter_alt),
+                    ),
+                  ),
                 ],
               ),
             ),

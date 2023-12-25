@@ -1,5 +1,5 @@
 import 'package:budgetbee/controllers/db_helper.dart';
-import 'package:budgetbee/widgets/incometile.dart';
+import 'package:budgetbee/widgets/income_tile.dart';
 import 'package:flutter/material.dart';
 
 class IncomeOnly extends StatefulWidget {
@@ -13,7 +13,7 @@ class _IncomeOnlyState extends State<IncomeOnly> {
   List<Map<dynamic, dynamic>> incomes = [];
   @override
   void initState() {
-    // TODO: implement initState
+  
     super.initState();
     fetchIncomes();
   }

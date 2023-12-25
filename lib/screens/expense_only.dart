@@ -1,5 +1,5 @@
 import 'package:budgetbee/controllers/db_helper.dart';
-import 'package:budgetbee/widgets/expensetile.dart';
+import 'package:budgetbee/widgets/expense_tile.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseOnly extends StatefulWidget {

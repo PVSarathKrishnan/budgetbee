@@ -46,6 +46,12 @@ dependencies:
   timezone: ^0.8.0
   url_launcher: ^6.2.2
   vibration: ^1.8.4
+  percent_indicator: ^3.0.1
+  flutter_neumorphic: ^3.2.0
+  flutter_gradient_colors: ^2.1.1
+  flutter_styled_toast: ^2.2.1
+  provider: ^6.1.1
+  marquee: ^2.2.3
 
 dev_dependencies:
   build_runner: ^2.4.6

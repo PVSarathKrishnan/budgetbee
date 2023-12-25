@@ -46,10 +46,7 @@ class CategoryFunctions {
           (element) => element.name.toLowerCase() == category.toLowerCase())) {
         final categoryModel = CategoryModel(name: category, type: 'Expense');
         await box.add(categoryModel);
-        print('Added default expense category: $category');
-      } else {
-        print('Expense category already exists: $category');
-      }
+      } else {}
     }
   }
 
@@ -73,9 +70,7 @@ class CategoryFunctions {
         final categoryModel = CategoryModel(name: category, type: 'Income');
         await box.add(categoryModel);
         print('Added default income category: $category');
-      } else {
-        print('Income category already exists: $category');
-      }
+      } else {}
     }
   }
 
@@ -115,9 +110,6 @@ class CategoryFunctions {
 
     if (!categoryExists) {
       await box.add(categoryModel);
-      print('Category added: $categoryModel');
-    } else {
-      print('Category already exists: $categoryModel');
-    }
+    } else {}
   }
 }

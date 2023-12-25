@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:budgetbee/model/reminder_model.dart';
 
 class ReminderPage extends StatefulWidget {
@@ -16,26 +15,89 @@ class ReminderPage extends StatefulWidget {
 class _ReminderPageState extends State<ReminderPage> {
   late TimeOfDay selectedTime = TimeOfDay.now();
   late DateTime selectedDate = DateTime.now();
-  late Timer _timer;
+  Timer? _timer;
   TextEditingController noteController = TextEditingController();
-  late Box<Reminder> remindersBox;
-  List<Reminder> reminders = [];
+  Box<Reminder>? remindersBox; // Make remindersBox nullable
 
+  List<Reminder> reminders = [];
   @override
   void initState() {
     super.initState();
     _initHive();
+    _startReminderTimer();
   }
 
   Future<void> _initHive() async {
     remindersBox = await Hive.openBox<Reminder>('remindersBox');
-    _getReminders();
+    if (mounted) {
+      _getReminders();
+    }
   }
 
   Future<void> _getReminders() async {
-    setState(() {
-      reminders = remindersBox.values.toList();
+    if (remindersBox != null && remindersBox!.isOpen) {
+      setState(() {
+        reminders = remindersBox!.values.toList();
+      });
+    }
+  }
+
+  Future<void> _startReminderTimer() async {
+    _timer = Timer.periodic(Duration(seconds: 10), (_) {
+      _checkReminders();
     });
+  }
+
+  Future<void> _checkReminders() async {
+    final now = DateTime.now();
+
+    for (final reminder in reminders) {
+      final reminderTimeComponents = reminder.time.split(':');
+
+      if (reminderTimeComponents.length == 2) {
+        final hours = int.tryParse(reminderTimeComponents[0]);
+        final minutes = int.tryParse(reminderTimeComponents[1]);
+
+        if (hours != null && minutes != null) {
+          final reminderDateTime = DateTime(
+            reminder.date.year,
+            reminder.date.month,
+            reminder.date.day,
+            hours,
+            minutes,
+          );
+
+          if (now.year == reminderDateTime.year &&
+              now.month == reminderDateTime.month &&
+              now.day == reminderDateTime.day &&
+              now.hour == reminderDateTime.hour &&
+              now.minute == reminderDateTime.minute) {
+            _showNotification(reminder.note);
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _showNotification(String alarmText) async {
+    final snackBar = SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Row(
+        children: [
+          Icon(Icons.alarm),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'ALARM: $alarmText',
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Color(0XFF9486F7),
+      duration: Duration(seconds: 5),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   Future<void> _selectTime(BuildContext context) async {
@@ -62,48 +124,12 @@ class _ReminderPageState extends State<ReminderPage> {
     }
   }
 
-  Future<void> _setReminder() async {
-    final now = DateTime.now();
-    final selectedDateTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedTime.hour,
-      selectedTime.minute,
-    );
-
-    if (selectedDateTime.isAfter(now)) {
-      final timeDifference = selectedDateTime.difference(now);
-      _timer = Timer(timeDifference, () {
-        _showNotification(noteController.text);
-      });
-
-      final reminder = Reminder()
-        ..note = noteController.text
-        ..time = selectedTime.format(context)
-        ..date = selectedDate;
-
-      await remindersBox.add(reminder);
-      noteController.clear();
-
-      setState(() {});
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select a date and time in the future.'),
-        ),
-      );
-    }
-  }
-
   Future<void> _editReminder(int index) async {
-    final reminder = remindersBox.getAt(index);
+    final reminder = remindersBox?.getAt(index);
 
-    setState(() {
-      selectedTime = TimeOfDay.now();
-      selectedDate = reminder?.date ?? DateTime.now();
-      noteController.text = reminder?.note ?? '';
-    });
+    selectedTime = TimeOfDay.now();
+    selectedDate = reminder?.date ?? DateTime.now();
+    noteController.text = reminder!.note;
 
     await showDialog(
       context: context,
@@ -172,6 +198,8 @@ class _ReminderPageState extends State<ReminderPage> {
                 style: button_theme_2(),
                 onPressed: () {
                   _updateReminder(index);
+                  // _showNotification(reminder!.note);
+
                   Navigator.of(context).pop();
                 },
                 child: Text(
@@ -202,7 +230,10 @@ class _ReminderPageState extends State<ReminderPage> {
     if (selectedDateTime.isAfter(now)) {
       final timeDifference = selectedDateTime.difference(now);
       _timer = Timer(timeDifference, () {
-        _showNotification(noteController.text);
+        final reminder = remindersBox?.getAt(index);
+        if (reminder != null) {
+          _showNotification(reminder.note);
+        }
       });
 
       final updatedReminder = Reminder()
@@ -210,10 +241,11 @@ class _ReminderPageState extends State<ReminderPage> {
         ..time = selectedTime.format(context)
         ..date = selectedDate;
 
-      await remindersBox.putAt(index, updatedReminder);
+      await remindersBox?.putAt(index, updatedReminder);
       noteController.clear();
 
-      setState(() {});
+      // Fetch the updated reminders list from Hive after editing the reminder
+      await _getReminders(); // Update the reminders list
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -224,21 +256,19 @@ class _ReminderPageState extends State<ReminderPage> {
   }
 
   Future<void> _deleteReminder(int index) async {
-    await remindersBox.deleteAt(index);
-    setState(() {});
+    if (reminders.isNotEmpty && index < reminders.length) {
+      await remindersBox?.deleteAt(index);
+      setState(() {
+        reminders.removeAt(index);
+      });
+    }
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer!.cancel();
     noteController.dispose();
     super.dispose();
-  }
-
-  Future<void> _showNotification(String note) async {
-    // Implement notification logic here
-    // This is just a placeholder for showing notifications
-    print('Reminder: $note');
   }
 
   Future<void> _addReminder(BuildContext context) async {
@@ -327,6 +357,41 @@ class _ReminderPageState extends State<ReminderPage> {
     );
   }
 
+  Future<void> _setReminder() async {
+    final now = DateTime.now();
+    final selectedDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
+    final reminder = Reminder()
+      ..note = noteController.text // Adding the note value
+      ..time = selectedTime.format(context)
+      ..date = selectedDate;
+
+    await remindersBox?.add(reminder);
+    noteController.clear();
+
+    setState(() {
+      reminders.add(reminder);
+    });
+    if (selectedDateTime.isAfter(now)) {
+      final timeDifference = selectedDateTime.difference(now);
+      _timer = Timer(timeDifference, () {
+        _showNotification(reminder.note);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select a date and time in the future.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -341,79 +406,90 @@ class _ReminderPageState extends State<ReminderPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         actions: [
           IconButton(
-              onPressed: () {
-                setState(() {});
-              },
-              icon: Icon(Icons.refresh)),
+            onPressed: () {
+              setState(() {});
+            },
+            icon: Icon(Icons.refresh),
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Your current Reminders',
-              style: text_theme_h(),
-            ),
-            Expanded(
-              child: ValueListenableBuilder<Box<Reminder>>(
-                valueListenable: remindersBox.listenable(),
-                builder: (context, box, _) {
-                  return ListView.builder(
-                    itemCount: box.length,
-                    itemBuilder: (context, index) {
-                      final reminder = box.getAt(index);
-                      return Card(
-                        color: Color.fromARGB(255, 226, 226, 226),
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        child: ListTile(
-                          title: Text(reminder?.note ?? ''),
-                          titleTextStyle:
-                              text_theme_h().copyWith(color: Colors.black),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Time: ${reminder?.time ?? ''}',
-                                style: text_theme(),
-                              ),
-                              Text(
-                                'Date: ${DateFormat('yyyy MMM dd').format(reminder?.date ?? DateTime.now())}',
-                                style: text_theme(),
-                              ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.edit,
-                                  color: Color(0XFF9486F7),
-                                ),
-                                onPressed: () {
-                                  _editReminder(index);
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                color: const Color.fromARGB(255, 255, 17, 0),
-                                onPressed: () {
-                                  _deleteReminder(index);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
+      body: RefreshIndicator(
+        color: Color(0XFF9486F7),
+        backgroundColor: Colors.white,
+        displacement: 50,
+        strokeWidth: 3,
+        triggerMode: RefreshIndicatorTriggerMode.onEdge,
+        onRefresh: () async {
+          setState(() {});
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your current Reminders',
+                style: text_theme_h(),
               ),
-            ),
-          ],
+              Expanded(
+                child: remindersBox != null && remindersBox!.isOpen
+                    ? ListView.builder(
+                        itemCount: reminders.length,
+                        itemBuilder: (context, index) {
+                          final reminder = reminders[index];
+                          return Card(
+                            color: Color.fromARGB(255, 226, 226, 226),
+                            elevation: 2,
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            child: ListTile(
+                              title: Text(reminder.note),
+                              titleTextStyle:
+                                  text_theme_h().copyWith(color: Colors.black),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Time: ${reminder.time}',
+                                    style: text_theme(),
+                                  ),
+                                  Text(
+                                    'Date: ${DateFormat('yyyy MMM dd').format(reminder.date)}',
+                                    style: text_theme(),
+                                  ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: Color(0XFF9486F7),
+                                    ),
+                                    onPressed: () {
+                                      _editReminder(index);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    color:
+                                        const Color.fromARGB(255, 255, 17, 0),
+                                    onPressed: () {
+                                      _deleteReminder(index);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: CircularProgressIndicator(),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

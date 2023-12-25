@@ -1,8 +1,7 @@
 import 'package:budgetbee/screens/expense_only.dart';
-import 'package:budgetbee/screens/filter_page.dart';
 import 'package:budgetbee/screens/income_only.dart';
 import 'package:budgetbee/screens/transaction_history.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 
 class MainTransactionPage extends StatefulWidget {
@@ -25,24 +24,7 @@ class _MainTransactionPageState extends State<MainTransactionPage> {
         centerTitle: true,
         backgroundColor: Color(0XFF9486F7),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        actions: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Color(0XFF9486F7).withOpacity(.4),
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-            ),
-            child: IconButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => FilterPage(),
-                ));
-              },
-              icon: Icon(Icons.filter_alt),
-            ),
-          ),
-        ],
+       
       ),
       body: AnimatedSwitcher(
         duration: Duration(milliseconds: 500),

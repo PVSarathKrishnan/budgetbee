@@ -1,7 +1,6 @@
 import 'package:budgetbee/controllers/db_helper.dart';
 import 'package:budgetbee/data/category_data.dart';
-import 'package:budgetbee/screens/welcome_screen.dart';
-import 'package:budgetbee/style/text_theme.dart';
+import 'package:budgetbee/style/text_button_theme.dart';
 import 'package:budgetbee/widgets/carousel_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -96,8 +95,6 @@ class _AddNameState extends State<AddName> {
                   ),
                   errorStyle: TextStyle(color: Colors.red),
                   errorMaxLines: 2,
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 ),
               ),
             ),
