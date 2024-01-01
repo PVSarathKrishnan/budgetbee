@@ -3,27 +3,24 @@ import 'dart:math';
 import 'package:budgetbee/db/repositories/transaction_function.dart';
 import 'package:budgetbee/db/repositories/budget_calculator_functions.dart';
 import 'package:budgetbee/db/models/budget_calculator.dart';
-import 'package:budgetbee/db/models/reminder_model.dart';
 import 'package:budgetbee/db/models/transaction_modal.dart';
-import 'package:budgetbee/presentation/screens/bottom_nav_bar/page/bnb_mainpage.dart';
-import 'package:budgetbee/presentation/screens/about_page/page/about_screen.dart';
 import 'package:budgetbee/presentation/screens/add_transaction_screen/page/add_transaction.dart';
-import 'package:budgetbee/presentation/screens/budget_calculator_page/page/budget_calculator_page.dart';
-import 'package:budgetbee/presentation/screens/home_page/page/delete_splash.dart';
-import 'package:budgetbee/presentation/screens/home_page/page/edit_profile_page.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/balance_card.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/budget_plan_heading.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/drawer_widget_icons.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/empty_data_piechart.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/empty_data_widget.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/expense_tracker_heading.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/profile_view.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/ratio_graph.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/recent_transaction_heading.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/homepage_widgets/warning_widget.dart';
 import 'package:budgetbee/presentation/screens/reminder_page/page/reminder_screen.dart';
-import 'package:budgetbee/presentation/screens/statistics_page/page/statistics_page.dart';
-import 'package:budgetbee/presentation/screens/home_page/page/tutorial_page.dart';
 import 'package:budgetbee/presentation/style/text_button_theme.dart';
-import 'package:budgetbee/presentation/common_widgets/expense_card.dart';
-import 'package:budgetbee/presentation/common_widgets/expense_income_widget.dart';
 import 'package:budgetbee/presentation/common_widgets/expense_tile.dart';
-import 'package:budgetbee/presentation/common_widgets/income_card.dart';
 import 'package:budgetbee/presentation/common_widgets/income_tile.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -172,17 +169,7 @@ class _HomePageState extends State<HomePage> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              Container(
-                height: 150,
-                child: DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Color(0XFF9486F7),
-                    ),
-                    child: Text(
-                      "Settings",
-                      style: text_theme_color_size(Colors.white, 30),
-                    )),
-              ),
+              SettingsIcon(),
               ListTile(
                 title: Row(
                   children: [
@@ -200,25 +187,7 @@ class _HomePageState extends State<HomePage> {
                   _showProfileModal(context);
                 },
               ),
-              ListTile(
-                title: Row(
-                  children: [
-                    Icon(
-                      Icons.hdr_auto_sharp,
-                      color: Colors.black,
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text('About us', style: text_theme()),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AboutScreen(),
-                  ));
-                },
-              ),
+              AboutUsIcon(),
               ListTile(
                 title: Row(
                   children: [
@@ -236,25 +205,7 @@ class _HomePageState extends State<HomePage> {
                     //To a external site where privacy policy of app
                     'https://www.freeprivacypolicy.com/live/ea5aba8f-705f-48cc-83f8-261ff8d2690f'),
               ),
-              ListTile(
-                title: Row(
-                  children: [
-                    Icon(
-                      Icons.help,
-                      color: Colors.black,
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text('Get Help', style: text_theme()),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => TutorialPage(),
-                  ));
-                },
-              ),
+              GetHelpIcon(),
               ListTile(
                 title: Row(
                   children: [
@@ -321,74 +272,7 @@ class _HomePageState extends State<HomePage> {
                   if (snapshot.hasData) {
                     if (snapshot.data!.isEmpty) {
                       return SingleChildScrollView(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 150),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              SizedBox(
-                                height: 20,
-                              ),
-                              Container(
-                                width: 250,
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      '"Know what you own, and know why you own it"',
-                                      style: text_theme_p(),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      "- Peter Lynch -",
-                                      style: text_theme_p()
-                                          .copyWith(letterSpacing: 3),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                height: 15,
-                              ),
-                              Text(
-                                "Hello ${preferences.getString("name")}",
-                                style: text_theme_h(),
-                              ),
-                              Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container()),
-                              Lottie.asset("lib/assets/nodata.json",
-                                  height: 100, width: 180),
-                              SizedBox(
-                                height: 20,
-                              ),
-                              Text(
-                                "No values Found,Try Adding Income first.",
-                                style: text_theme_p(),
-                              ),
-                              Container(
-                                height: 190,
-                                width: 200,
-                                child: Column(
-                                  children: [
-                                    SizedBox(height: 30),
-                                    Container(
-                                      height: 100,
-                                      width: 100,
-                                      child: Image(
-                                          image: AssetImage(
-                                              "lib/assets/Logo.png")),
-                                    ),
-                                    SizedBox(height: 10),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        child: EmptyDataWidget(preferences: preferences),
                       );
                     }
                     getTotalBalance(snapshot.data!);
@@ -405,90 +289,15 @@ class _HomePageState extends State<HomePage> {
                         Container(
                           width: MediaQuery.of(context).size.width * .8,
                           margin: EdgeInsets.all(12),
-                          child: Container(
-                            decoration: BoxDecoration(
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 2,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 3),
-                                  )
-                                ],
-                                borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(colors: [
-                                  Color.fromARGB(255, 162, 151, 248),
-                                  Color.fromARGB(255, 164, 152, 250),
-                                  Color.fromARGB(255, 150, 137, 253),
-                                  Color.fromARGB(255, 164, 152, 250),
-                                  Color.fromARGB(255, 162, 151, 248),
-                                ])),
-                            padding: EdgeInsets.all(12),
-                            child: Column(children: [
-                              Text(
-                                "Available Balance",
-                                style: text_theme_h(),
-                              ),
-                              Text(
-                                "₹ ${totalBalance}",
-                                style: text_theme_h(),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    cardIncome(value: "₹ ${totalIncome}"),
-                                    SizedBox(
-                                      width: 50,
-                                    ),
-                                    cardEpense(value: "₹ ${totalExpense}")
-                                  ],
-                                ),
-                              ),
-                            ]),
-                          ),
+                          child: BalanceCard(
+                              totalBalance: totalBalance,
+                              totalIncome: totalIncome,
+                              totalExpense: totalExpense),
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Text(
-                                "Expense Tracker - ${DateFormat('MMMM').format(DateTime.now())}",
-                                style: text_theme_h(),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: Container(
-                                height: 45,
-                                width: 45,
-                                decoration: BoxDecoration(
-                                    color: Color(0XFF9486F7),
-                                    borderRadius: BorderRadius.circular(60)),
-                                child: IconButton(
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                      builder: (context) => StatPage(
-                                        totalBalance: totalBalance,
-                                        totalIncome: totalIncome,
-                                        totalExpense: totalExpense,
-                                      ),
-                                    ));
-                                  },
-                                  icon: Icon(
-                                    Icons.navigate_next_sharp,
-                                    size: 30,
-                                  ),
-                                  tooltip: "Explore more Statistics",
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
+                        ExpenseHeading(
+                            totalBalance: totalBalance,
+                            totalIncome: totalIncome,
+                            totalExpense: totalExpense),
                         Container(
                           height: 400,
                           padding: EdgeInsets.all(18),
@@ -511,28 +320,7 @@ class _HomePageState extends State<HomePage> {
                                       child: Text('Error loading data'));
                                 } else if (pieSnapshot.hasData) {
                                   if (pieSnapshot.data!.isEmpty) {
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            width: 200,
-                                            child: Text(
-                                              'Add expenses to see the pie chart.',
-                                              style: text_theme_h().copyWith(
-                                                  color: Color(0XFF9486F7)),
-                                            ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Lottie.asset(
-                                            "lib/assets/nodatachart.json",
-                                            height: 100,
-                                            width: 180,
-                                          ),
-                                        ],
-                                      ),
-                                    );
+                                    return EmptyDataPieChart();
                                   }
                                   return Padding(
                                       padding: const EdgeInsets.all(28.0),
@@ -552,44 +340,7 @@ class _HomePageState extends State<HomePage> {
                                 }
                               }),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Recent Transactions",
-                                style: text_theme_h(),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  right: 12.0,
-                                ),
-                                child: Container(
-                                  height: 45,
-                                  width: 45,
-                                  decoration: BoxDecoration(
-                                      color: Color(0XFF9486F7),
-                                      borderRadius: BorderRadius.circular(60)),
-                                  child: IconButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                        builder: (context) =>
-                                            MainTransactionPage(),
-                                      ));
-                                    },
-                                    icon: Icon(
-                                      Icons.navigate_next_sharp,
-                                      size: 30,
-                                    ),
-                                    tooltip: "View full transaction history",
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
+                        RecentTransactionHeading(),
                         ListView.builder(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
@@ -617,68 +368,9 @@ class _HomePageState extends State<HomePage> {
                         SizedBox(
                           height: 10,
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Your Budget Plans",
-                                style: text_theme_h(),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: Container(
-                                  height: 45,
-                                  width: 45,
-                                  decoration: BoxDecoration(
-                                      color: Color(0XFF9486F7),
-                                      borderRadius: BorderRadius.circular(60)),
-                                  child: IconButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                        builder: (context) =>
-                                            BudgetCalculatorPage(),
-                                      ));
-                                    },
-                                    icon: Icon(
-                                      Icons.navigate_next_sharp,
-                                      size: 30,
-                                    ),
-                                    tooltip: "Explore more Statistics",
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              height: 420,
-                              padding: EdgeInsets.all(18),
-                              margin: EdgeInsets.all(15),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(.4),
-                                    spreadRadius: 5,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                  child: ExpenseIncomeRatioWidget(
-                                      expenseToIncomeRatio:
-                                          expenseToIncomeRatio)),
-                            ),
-                          ],
-                        ),
+                        BudgetHeading(),
+                        RatioGraphWidget(
+                            expenseToIncomeRatio: expenseToIncomeRatio),
                         Container(
                           height: 40,
                         ),
@@ -702,110 +394,7 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             color: const Color(0XFF9486F7),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                height: 50,
-                width: 180,
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 254, 254),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    "Profile",
-                    style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                width: 390,
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  preferences.getString("name") ?? 'Placeholder Name',
-                  style: text_theme_h().copyWith(color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    width: 170,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Text(
-                      preferences.getString("userType") ?? 'Placeholder',
-                      textAlign: TextAlign.center,
-                      style: text_theme()
-                          .copyWith(color: const Color.fromARGB(255, 0, 0, 0)),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    width: 170,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Text(
-                      preferences.getString("incomeLevel") ?? 'Placeholder',
-                      textAlign: TextAlign.center,
-                      style: text_theme().copyWith(
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 30),
-              ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfile(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 120,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Icon(
-                          Icons.edit,
-                          color: Colors.black,
-                        ),
-                        Text("Edit Profile",
-                            style: text_theme().copyWith(color: Colors.black)),
-                      ],
-                    ),
-                  ),
-                  style: button_theme().copyWith(
-                      padding: MaterialStatePropertyAll(
-                          EdgeInsets.symmetric(horizontal: 30)))),
-            ],
-          ),
+          child: ProfileViewWidget(preferences: preferences),
         );
       },
     );
@@ -893,69 +482,8 @@ class _HomePageState extends State<HomePage> {
     return pieChartData;
   }
 
-  AlertDialog showWarning(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.white,
-      title: Text('Warning!',
-          style: text_theme_h()
-              .copyWith(color: const Color.fromARGB(255, 255, 17, 0))),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Are you sure you want to erase all data?',
-            style: TextStyle(
-                fontWeight: FontWeight.bold, color: text_theme().color),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Text(
-            'This action will delete all the data permanently!',
-            style: text_theme_p().copyWith(
-                fontSize: 15, color: Color.fromARGB(255, 111, 111, 111)),
-          ),
-        ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () async {
-            // Clearing Hive boxes
-            await Hive.box('money').clear();
-            await Hive.box('categories').clear();
-            await Hive.box("expenseCategoryBox").clear();
-            await Hive.box("incomeCategoryBox").clear();
-            await Hive.box<BudgetCalculator>('budget_calculators').clear();
-            await Hive.box('budgetCalculatorBox').clear();
-            await Hive.box<Reminder>('remindersbox').clear();
-
-            // Clearing shared preferences
-            SharedPreferences preferences =
-                await SharedPreferences.getInstance();
-            await preferences.clear();
-
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => DeleteSplashScreen(),
-            ));
-          },
-          child: Text(
-            'Delete ',
-            style:
-                text_theme_h().copyWith(color: Color.fromARGB(255, 255, 0, 0)),
-          ),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text(
-            'Close',
-            style: text_theme_h().copyWith(color: Color(0XFF9486F7)),
-          ),
-        ),
-      ],
-    );
+  WarningTextWidget showWarning(BuildContext context) {
+    return WarningTextWidget();
   }
 
   void delayedFunction() {

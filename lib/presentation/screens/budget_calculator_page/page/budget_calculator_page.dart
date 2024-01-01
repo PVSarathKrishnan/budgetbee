@@ -1,6 +1,7 @@
 import 'package:budgetbee/db/repositories/transaction_function.dart';
 import 'package:budgetbee/db/models/transaction_modal.dart';
 import 'package:budgetbee/presentation/common_widgets/dropdown_budget.dart';
+import 'package:budgetbee/presentation/screens/budget_calculator_page/widget/nodata_budget.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:budgetbee/db/repositories/category_functions.dart';
@@ -99,24 +100,7 @@ class _BudgetCalculatorPageState extends State<BudgetCalculatorPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
       body: budgetCalculators.isEmpty
-          ? Center(
-              child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'No budget calculators yet.',
-                  style: text_theme_h().copyWith(color: Colors.black54),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Lottie.asset(
-                  "lib/assets/nodatachart.json",
-                  height: 100,
-                  width: 180,
-                ),
-              ],
-            ))
+          ? nodata_widget()
           : ListView.builder(
               itemCount: budgetCalculators.length,
               itemBuilder: (context, index) {

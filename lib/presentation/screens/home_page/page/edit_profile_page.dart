@@ -1,5 +1,6 @@
 import 'package:budgetbee/db/repositories/category_data.dart';
 import 'package:budgetbee/presentation/screens/home_page/page/home_page.dart';
+import 'package:budgetbee/presentation/screens/home_page/widget/edit_profile_widgets/name_text_field.dart';
 import 'package:budgetbee/presentation/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -60,28 +61,7 @@ class _EditProfileState extends State<EditProfile> {
               SizedBox(
                 height: 40,
               ),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.person),
-                  prefixIconColor: const Color.fromARGB(255, 93, 93, 93),
-                  hintText: "Name",
-                  labelText: "Enter your name",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  labelStyle: GoogleFonts.poppins(),
-                  floatingLabelStyle: GoogleFonts.poppins(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(.7),
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                ),
-                style: text_theme_h(),
-              ),
+              NameTextField(nameController: _nameController),
               SizedBox(height: 30.0),
               DropdownButtonFormField<String>(
                 value: selectedUserType,
@@ -164,7 +144,6 @@ class _EditProfileState extends State<EditProfile> {
                       ),
                     ),
                   );
-
                   Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (context) => HomePage(),

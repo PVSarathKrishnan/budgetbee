@@ -1,3 +1,4 @@
+import 'package:budgetbee/presentation/screens/home_page/widget/tutorial_widgets/content_widget.dart';
 import 'package:budgetbee/presentation/style/text_button_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -76,25 +77,7 @@ class _TutorialPageState extends State<TutorialPage> {
                                 color: Color(0XFF9486F7),
                               ),
                               isActive: _currentStep >= 0,
-                              content: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Image.asset(
-                                      "lib/assets/Fc.jpg",
-                                      fit: BoxFit.fill,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Text('Welcome to BudgetBee!',
-                                        style: text_theme_h()
-                                            .copyWith(fontSize: 16)),
-                                  ],
-                                ),
-                              ),
+                              content: FirstContent(),
                             ),
                             Step(
                               title: Icon(
@@ -103,27 +86,7 @@ class _TutorialPageState extends State<TutorialPage> {
                                 color: Color(0XFF9486F7),
                               ),
                               isActive: _currentStep >= 1,
-                              content: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Image.asset(
-                                      "lib/assets/1c.jpg",
-                                      fit: BoxFit.fill,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Text(
-                                        '"Money magic awaits! Add transactions, unlock wonders!"',
-                                        textAlign: TextAlign.center,
-                                        style: text_theme()
-                                            .copyWith(fontSize: 16)),
-                                  ],
-                                ),
-                              ),
+                              content: SecondContent(),
                             ),
                             Step(
                               title: Icon(
@@ -132,24 +95,7 @@ class _TutorialPageState extends State<TutorialPage> {
                                 color: Color(0XFF9486F7),
                               ),
                               isActive: _currentStep >= 2,
-                              content: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Image.asset(
-                                      "lib/assets/2c.jpg",
-                                      fit: BoxFit.fill,
-                                    ),
-                                    Text(
-                                        '"Play it your way! \n Stick to defaults or jazz it up by adding your own categories!"',
-                                        textAlign: TextAlign.center,
-                                        style: text_theme()
-                                            .copyWith(fontSize: 16)),
-                                  ],
-                                ),
-                              ),
+                              content: ThirdContent(),
                             ),
                             Step(
                               title: Icon(
@@ -158,27 +104,7 @@ class _TutorialPageState extends State<TutorialPage> {
                                 color: Color(0XFF9486F7),
                               ),
                               isActive: _currentStep >= 3,
-                              content: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Image.asset(
-                                      "lib/assets/3c.jpg",
-                                      fit: BoxFit.fill,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Text(
-                                        '"Search, sort, and filter like a boss! \nManage your transaction history hassle-free!"',
-                                        textAlign: TextAlign.center,
-                                        style: text_theme()
-                                            .copyWith(fontSize: 16)),
-                                  ],
-                                ),
-                              ),
+                              content: FourthContent(),
                             ),
                             Step(
                               title: Icon(
@@ -187,27 +113,7 @@ class _TutorialPageState extends State<TutorialPage> {
                                 color: Color(0XFF9486F7),
                               ),
                               isActive: _currentStep >= 4,
-                              content: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Image.asset(
-                                      "lib/assets/4c.jpg",
-                                      fit: BoxFit.fill,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Text(
-                                        "Don't let brilliant ideas slip away! \n Tap into our reminders and never miss a beat!'",
-                                        textAlign: TextAlign.center,
-                                        style: text_theme()
-                                            .copyWith(fontSize: 16)),
-                                  ],
-                                ),
-                              ),
+                              content: FifthContent(),
                             ),
                             Step(
                               title: Icon(
@@ -216,24 +122,7 @@ class _TutorialPageState extends State<TutorialPage> {
                                 color: Color(0XFF9486F7),
                               ),
                               isActive: _currentStep >= 5,
-                              content: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Image.asset(
-                                      "lib/assets/5c.jpg",
-                                      fit: BoxFit.fill,
-                                    ),
-                                    Text(
-                                        'Visualize your money flow! \n Check out analytics now!',
-                                        textAlign: TextAlign.center,
-                                        style: text_theme()
-                                            .copyWith(fontSize: 16)),
-                                  ],
-                                ),
-                              ),
+                              content: SixthContent(),
                             ),
                             Step(
                               title: Icon(
@@ -242,28 +131,7 @@ class _TutorialPageState extends State<TutorialPage> {
                                 color: Color(0XFF9486F7),
                               ),
                               isActive: _currentStep >= 6,
-                              content: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Image.asset(
-                                      "lib/assets/6c.jpg",
-                                      fit: BoxFit.fill,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Text(
-                                      'Congratulations! \n You\'ve completed the tutorial!',
-                                      textAlign: TextAlign.center,
-                                      style:
-                                          text_theme().copyWith(fontSize: 16),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              content: SeventhContent(),
                             ),
                           ]),
                     )))

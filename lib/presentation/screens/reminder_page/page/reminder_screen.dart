@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:budgetbee/presentation/screens/reminder_page/widget/empty_reminder.dart';
+import 'package:budgetbee/presentation/screens/reminder_page/widget/note_field.dart';
+import 'package:budgetbee/presentation/screens/reminder_page/widget/reminder_data.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -183,14 +186,7 @@ class _ReminderPageState extends State<ReminderPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: noteController,
-                decoration: InputDecoration(
-                  labelText: 'Enter Note for Reminder',
-                  labelStyle: text_theme(),
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              NoteFieldWidget(noteController: noteController),
             ],
           ),
           actions: <Widget>[
@@ -432,51 +428,27 @@ class _ReminderPageState extends State<ReminderPage> {
                 'Your current Reminders',
                 style: text_theme_h(),
               ),
+              SizedBox(
+                height: 10,
+              ),
               Expanded(
                 child: remindersBox != null && remindersBox!.isOpen
                     ? reminders.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'No reminders right now',
-                                  style: text_theme_h().copyWith(color: Colors.black45),
-                                ),
-                                SizedBox(
-                                  height: 20,
-                                ),
-                                Lottie.asset("lib/assets/reminder.json",
-                                    height: 100, width: 180)
-                              ],
-                            ),
-                          )
+                        ? EmptyReminderWidget()
                         : ListView.builder(
                             itemCount: reminders.length,
                             itemBuilder: (context, index) {
                               final reminder = reminders[index];
                               return Card(
-                                color: Color.fromARGB(255, 226, 226, 226),
-                                elevation: 2,
+                                color: Color.fromARGB(255, 242, 242, 242),
+                                elevation: 6,
                                 margin: const EdgeInsets.symmetric(vertical: 4),
                                 child: ListTile(
                                   title: Text(reminder.note),
                                   titleTextStyle: text_theme_h()
                                       .copyWith(color: Colors.black),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Time: ${reminder.time}',
-                                        style: text_theme(),
-                                      ),
-                                      Text(
-                                        'Date: ${DateFormat('yyyy MMM dd').format(reminder.date)}',
-                                        style: text_theme(),
-                                      ),
-                                    ],
-                                  ),
+                                  subtitle:
+                                      ReminderDataWidget(reminder: reminder),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
