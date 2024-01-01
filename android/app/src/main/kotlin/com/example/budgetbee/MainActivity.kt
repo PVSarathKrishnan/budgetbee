@@ -1,4 +1,4 @@
-package com.example.budgetbee
+package com.application.budgetbee
 
 import io.flutter.embedding.android.FlutterActivity
 

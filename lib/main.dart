@@ -1,10 +1,10 @@
-import 'package:budgetbee/model/budget_calculator.dart';
-import 'package:budgetbee/model/reminder_model.dart';
+import 'package:budgetbee/db/models/budget_calculator.dart';
+import 'package:budgetbee/db/models/reminder_model.dart';
 
-import 'package:budgetbee/db/category_functions.dart';
-import 'package:budgetbee/model/category_model.dart';
+import 'package:budgetbee/db/repositories/category_functions.dart';
+import 'package:budgetbee/db/models/category_model.dart';
 
-import 'package:budgetbee/screens/splash_screen.dart';
+import 'package:budgetbee/presentation/screens/splash_screen/page/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:hive_flutter/adapters.dart';

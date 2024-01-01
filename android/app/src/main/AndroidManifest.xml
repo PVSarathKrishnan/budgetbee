@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package = "com.application.budgetbee"> 
     <application
         android:label="budgetbee"
         android:name="${applicationName}"
